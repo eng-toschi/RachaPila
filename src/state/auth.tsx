@@ -30,6 +30,12 @@ interface AuthStore {
   readonly loading: boolean;
   readonly signInWithEmail: (email: string) => Promise<SignInResult>;
   readonly signOut: () => Promise<void>;
+  /**
+   * Depuração temporária (ver DECISIONS.md): erro da última troca de código
+   * PKCE por sessão, quando o link mágico volta pro app mas a sessão não
+   * fecha. `undefined` = nenhuma tentativa ainda nesta abertura do app.
+   */
+  readonly lastExchangeError: string | undefined;
 }
 
 const AuthContext = createContext<AuthStore | undefined>(undefined);
@@ -37,6 +43,7 @@ const AuthContext = createContext<AuthStore | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [lastExchangeError, setLastExchangeError] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     let cancelled = false;
@@ -60,7 +67,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
      */
     const completeSignIn = (url: string): void => {
       if (!url.includes('code=')) return;
-      void supabase.auth.exchangeCodeForSession(url);
+      void supabase.auth.exchangeCodeForSession(url).then(({ error }) => {
+        setLastExchangeError(error === null ? undefined : `${error.message} (${url})`);
+      });
     };
 
     void Linking.getInitialURL().then((url) => {
@@ -79,7 +88,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       session,
       loading,
+      lastExchangeError,
       signInWithEmail: async (email) => {
+        setLastExchangeError(undefined);
         const { error } = await supabase.auth.signInWithOtp({
           email,
           options: { emailRedirectTo: AUTH_REDIRECT_URL },
@@ -90,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await supabase.auth.signOut();
       },
     }),
-    [session, loading],
+    [session, loading, lastExchangeError],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

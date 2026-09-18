@@ -21,7 +21,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/u;
 export default function LoginScreen() {
   const t = useTheme();
   const insets = useSafeAreaInsets();
-  const { session, loading, signInWithEmail, signOut } = useAuth();
+  const { session, loading, signInWithEmail, signOut, lastExchangeError } = useAuth();
 
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
@@ -178,6 +178,14 @@ export default function LoginScreen() {
           <RNText selectable style={{ fontSize: 11, color: t.textFaint, textAlign: 'center' }}>
             {AUTH_REDIRECT_URL}
           </RNText>
+          {lastExchangeError !== undefined ? (
+            <RNText
+              selectable
+              style={{ fontSize: 11, color: t.negative, textAlign: 'center', marginTop: 4 }}
+            >
+              erro ao trocar código: {lastExchangeError}
+            </RNText>
+          ) : null}
         </View>
       </View>
     </View>

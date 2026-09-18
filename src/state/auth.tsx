@@ -65,9 +65,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
      * coisa de web). Aqui a URL completa (com o `code` da PKCE) é entregue à
      * mão para o Supabase trocar por uma sessão.
      */
-    const completeSignIn = (url: string): void => {
+    const completeSignIn = (url: string, retriesLeft = 2): void => {
       if (!url.includes('code=')) return;
       void supabase.auth.exchangeCodeForSession(url).then(({ error }) => {
+        /**
+         * A troca do código costuma falhar uma vez por um soluço de rede bem
+         * na hora em que o Safari devolve o controle pro app (visto ao vivo:
+         * "network connection was lost"). Se a falha for de rede e o código
+         * ainda não tiver sido usado, vale tentar de novo antes de desistir.
+         */
+        if (error !== null && retriesLeft > 0 && /network/iu.test(error.message)) {
+          setTimeout(() => { completeSignIn(url, retriesLeft - 1); }, 1500);
+          return;
+        }
         setLastExchangeError(error === null ? undefined : `${error.message} (${url})`);
       });
     };

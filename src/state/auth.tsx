@@ -20,7 +20,7 @@ import { supabase } from '@/services/supabase';
  * estar cadastrado como PADRÃO (`exp://**` e `rachapila://**`) em
  * Authentication → URL Configuration, não como texto fixo.
  */
-const AUTH_REDIRECT_URL = Linking.createURL('/');
+export const AUTH_REDIRECT_URL = Linking.createURL('/');
 
 export type SignInResult = { readonly ok: true } | { readonly ok: false; readonly message: string };
 

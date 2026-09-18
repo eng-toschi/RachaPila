@@ -573,3 +573,19 @@ decisões que valem registrar:
 
 Ainda falta, antes de qualquer teste ao vivo: cadastrar os dois padrões de
 redirect no painel (ver RUNNING.md).
+
+## 2026-09-18 — Link mágico caiu na Site URL, não no app — depurando ao vivo
+
+Primeiro teste real do login: o e-mail chegou, o link foi tocado, mas o
+navegador abriu `http://localhost:3000/?code=...` — a **Site URL** do
+projeto (o valor de fallback do Supabase), não o padrão `exp://**` cadastrado
+em Redirect URLs. Isso normalmente significa que o `redirect_to` que o app
+pediu não bateu contra o padrão cadastrado, e o Supabase caiu de volta na
+Site URL em silêncio, sem erro nenhum na hora de mandar o e-mail.
+
+Como esta sessão não alcança o Supabase nem o celular do usuário (ver
+entrada de 18/09 acima), não dá para inspecionar a requisição real. Em vez
+de adivinhar, `AUTH_REDIRECT_URL` (o valor que `Linking.createURL('/')`
+calcula) passou a aparecer, temporariamente, na própria tela de login — dado
+concreto em vez de suposição. Sai assim que o fluxo for confirmado
+funcionando de ponta a ponta.

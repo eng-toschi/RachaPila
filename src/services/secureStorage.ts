@@ -38,7 +38,13 @@ function chunkKey(key: string, index: number): string {
 export const secureStorageAdapter = {
   async getItem(key: string): Promise<string | null> {
     const countText = await SecureStore.getItemAsync(countKey(key));
-    if (countText === null) return null;
+    if (countText === null) {
+      // Depuração temporária (ver DECISIONS.md) do "invalid flow state" no
+      // link mágico — quero ver se a chave do verificador PKCE nem chega a
+      // existir na hora da troca.
+      console.log(`[secureStorage] getItem(${key}) -> null (sem .count)`);
+      return null;
+    }
 
     const count = Number(countText);
     if (!Number.isInteger(count) || count < 0) return null;
@@ -49,13 +55,19 @@ export const secureStorageAdapter = {
       // Um pedaço sumiu (app apagado no meio de uma gravação, por exemplo):
       // a sessão inteira é inválida. Devolver metade dela seria pior do que
       // devolver "sem sessão" — o app pede login de novo, o que é seguro.
-      if (chunk === null) return null;
+      if (chunk === null) {
+        console.log(`[secureStorage] getItem(${key}) -> null (faltou pedaço ${String(index)}/${String(count)})`);
+        return null;
+      }
       chunks.push(chunk);
     }
-    return joinChunks(chunks);
+    const joined = joinChunks(chunks);
+    console.log(`[secureStorage] getItem(${key}) -> ${String(joined.length)} caracteres`);
+    return joined;
   },
 
   async setItem(key: string, value: string): Promise<void> {
+    console.log(`[secureStorage] setItem(${key}, ${String(value.length)} caracteres)`);
     const previousCount = Number(await SecureStore.getItemAsync(countKey(key)));
     const chunks = splitIntoChunks(value, CHUNK_SIZE);
 

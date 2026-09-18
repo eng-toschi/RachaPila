@@ -18,17 +18,23 @@ Precisa de **Node 20 ou mais novo** (`node -v` para conferir).
 Primeira vez:
 
 ```bash
-git clone -b claude/travel-expense-splitting-app-33pgc6 https://github.com/eng-toschi/DashTrash.git
-cd DashTrash
+git clone https://github.com/eng-toschi/RachaPila.git
+cd RachaPila
 npm install
 npx expo start
 ```
 
+> O projeto morava em `eng-toschi/DashTrash`, branch
+> `claude/travel-expense-splitting-app-33pgc6` — mudou para
+> `eng-toschi/RachaPila`, branch `main`, com todo o histórico. Se você já
+> tinha a pasta antiga clonada, o mais simples é clonar de novo numa pasta
+> `RachaPila`; ela não precisa mais conviver com a `DashTrash`.
+
 **Pegando uma versão nova** (é este o caso quando eu digo "já subi"):
 
 ```bash
-cd ~/DashTrash
-git pull origin claude/travel-expense-splitting-app-33pgc6
+cd ~/RachaPila
+git pull origin main
 npm install
 npx expo start -c
 ```

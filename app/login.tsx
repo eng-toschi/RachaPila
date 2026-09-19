@@ -7,10 +7,12 @@
  * login antes de entregar valor").
  */
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { deleteAccount } from '@/services/account';
 import { useAuth } from '@/state/auth';
+import { useDatabase } from '@/state/database';
 import { Button, Card, Row, Text } from '@/ui/components';
 import { IconCheck, IconUser } from '@/ui/icons';
 import { useTheme } from '@/ui/theme';
@@ -22,12 +24,14 @@ export default function LoginScreen() {
   const t = useTheme();
   const insets = useSafeAreaInsets();
   const { session, loading, signInWithEmail, signOut } = useAuth();
+  const { db, mutate } = useDatabase();
 
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [showInvite, setShowInvite] = useState(false);
   const [inviteInput, setInviteInput] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   const validEmail = EMAIL_RE.test(email.trim());
 
@@ -49,6 +53,37 @@ export default function LoginScreen() {
    * código — o convite compartilhado (`createInvite`) manda os dois juntos
    * justamente porque, sem build de verdade, o link ainda não abre sozinho.
    */
+  /**
+   * Excluir conta pede confirmação em duas etapas de propósito: é
+   * irreversível, e a pessoa precisa entender antes que isto NÃO apaga as
+   * viagens dela nem as despesas que o grupo já lançou.
+   */
+  const confirmDelete = (): void => {
+    Alert.alert(
+      'Excluir sua conta?',
+      'Sua conta e seus convites são apagados. Suas viagens continuam neste celular, e as despesas que você já lançou continuam com o grupo — você volta a aparecer lá só pelo nome.\n\nIsto não pode ser desfeito.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir conta',
+          style: 'destructive',
+          onPress: () => {
+            setDeleting(true);
+            void deleteAccount(db).then((result) => {
+              setDeleting(false);
+              if (result.ok) {
+                mutate(() => undefined);
+                router.back();
+              } else {
+                Alert.alert('Não consegui excluir', result.message);
+              }
+            });
+          },
+        },
+      ],
+    );
+  };
+
   const openInvite = (): void => {
     const raw = inviteInput.trim();
     if (raw === '') return;
@@ -105,6 +140,17 @@ export default function LoginScreen() {
               variant="secondary"
               onPress={() => { void signOut(); }}
             />
+
+            <Pressable
+              accessibilityRole="button"
+              onPress={confirmDelete}
+              disabled={deleting}
+              hitSlop={8}
+            >
+              <Text variant="caption" tone="negative">
+                {deleting ? 'Excluindo…' : 'Excluir minha conta'}
+              </Text>
+            </Pressable>
           </View>
         ) : (
           <>

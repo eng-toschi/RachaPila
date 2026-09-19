@@ -513,3 +513,61 @@ begin
   where (excluded.lamport, excluded.actor_id) > (public.settlements.lamport, public.settlements.actor_id);
 end;
 $$;
+
+-- ---------------------------------------------------------------------------
+-- Excluir a conta (App Store, diretriz 5.1.1(v) — exigência, não escolha)
+--
+-- A regra que manda aqui não é da Apple, é do §9: `Σ saldos = 0`. Apagar as
+-- despesas de quem sai quebraria o fechamento de todo mundo que ficou, e um
+-- grupo descobrir que a conta não fecha mais é a pior falha possível neste
+-- app. Então sair NÃO apaga histórico: a pessoa volta a ser um participante
+-- fantasma (`user_id = null`), exatamente como era antes de aceitar o
+-- convite, e o grupo continua fechando.
+--
+-- O que some de verdade: a conta, a participação em cada viagem
+-- (`trip_members`), os convites que ela criou, e — só aí — as viagens que
+-- ficaram sem nenhum membro, porque ninguém mais consegue enxergá-las.
+-- ---------------------------------------------------------------------------
+
+create or replace function public.delete_my_account()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  me uuid := auth.uid();
+  orphan_trip uuid;
+begin
+  if me is null then
+    raise exception 'sem sessão' using errcode = 'P0001';
+  end if;
+
+  -- Volta a ser fantasma em toda viagem: o histórico fica com o grupo.
+  update public.participants set user_id = null where user_id = me;
+
+  delete from public.trip_invites where created_by = me;
+  delete from public.trip_members where user_id = me;
+
+  -- Viagem sem nenhum membro não é visível para ninguém — é lixo, não acervo.
+  for orphan_trip in
+    select t.id from public.trips t
+    where not exists (select 1 from public.trip_members m where m.trip_id = t.id)
+  loop
+    delete from public.expense_shares
+      where expense_id in (select id from public.expenses where trip_id = orphan_trip);
+    delete from public.expenses where trip_id = orphan_trip;
+    delete from public.settlements where trip_id = orphan_trip;
+    delete from public.trip_subgroups where trip_id = orphan_trip;
+    delete from public.trip_invites where trip_id = orphan_trip;
+    -- `merged_into` aponta para a própria tabela: soltar antes, senão a
+    -- exclusão esbarra na referência linha a linha.
+    update public.participants set merged_into = null where trip_id = orphan_trip;
+    delete from public.participants where trip_id = orphan_trip;
+    delete from public.trip_currencies where trip_id = orphan_trip;
+    delete from public.trips where id = orphan_trip;
+  end loop;
+
+  delete from auth.users where id = me;
+end;
+$$;

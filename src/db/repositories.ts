@@ -255,6 +255,29 @@ export function isTripSynced(db: Database, tripId: string): boolean {
 }
 
 /**
+ * Desfaz, no aparelho, os rastros de uma conta que foi excluída.
+ *
+ * As viagens NÃO são apagadas: elas são da pessoa, continuam funcionando
+ * offline como antes de qualquer conta existir — apagá-las junto seria
+ * confundir "sair do serviço" com "perder minhas contas de viagem". O que
+ * sai é o vínculo: nada mais sincroniza (sem `sync_state`), e quem era
+ * "você pela conta" volta a ser "você por este aparelho", que é exatamente
+ * o estado anterior ao login.
+ *
+ * Escreve direto, sem passar pelo outbox: reverter a própria identidade
+ * local não é um fato que o grupo precise saber — e não há mais para onde
+ * mandar, a conta não existe mais.
+ */
+export function forgetAccount(db: Database, userId: string): void {
+  db.transaction(() => {
+    const actorId = localActorId(db);
+    db.run('UPDATE participants SET user_id = ? WHERE user_id = ?', [actorId, userId]);
+    db.run('UPDATE device_state SET linked_user_id = NULL WHERE id = 1');
+    db.run('DELETE FROM sync_state');
+  });
+}
+
+/**
  * Preferências do aparelho (tema, por enquanto).
  *
  * Fora do outbox de propósito: escolher o tema escuro num celular não é

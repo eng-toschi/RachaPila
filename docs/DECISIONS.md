@@ -589,3 +589,47 @@ de adivinhar, `AUTH_REDIRECT_URL` (o valor que `Linking.createURL('/')`
 calcula) passou a aparecer, temporariamente, na própria tela de login — dado
 concreto em vez de suposição. Sai assim que o fluxo for confirmado
 funcionando de ponta a ponta.
+
+## 2026-09-19 — Login por link mágico funcionando de ponta a ponta
+
+Três problemas empilhados, cada um escondendo o próximo. Todos resolvidos;
+a legenda de debug e os logs temporários já saíram do código.
+
+- **`exp://<ip>:<porta>/--/` não batia contra `exp://**` no Supabase.**
+  Confirmado pelos logs de Auth do próprio Supabase: o app mandava o
+  `redirect_to` certo no `POST /otp`, mas o e-mail saía com `redirect_to`
+  igual à Site URL — ou seja, a checagem da allow list falhava na hora de
+  *gerar* o link, não na hora de clicar nele. Nem o padrão exato
+  (`exp://192.168.x.x:porta/--/`) cadastrado lado a lado com o wildcard
+  resolveu, nem reiniciar o projeto no Supabase. A suspeita (não confirmada
+  na fonte do Supabase, só por eliminação): o validador não lida bem com uma
+  porta explícita no host de um esquema customizado. Rodar com
+  `npx expo start --tunnel` contorna o problema por completo, porque o
+  endereço vira um hostname sem porta (`exp://algo.exp.direct/--/`), coberto
+  pelo `exp://**` sem drama. **Testar o login no Expo Go exige `--tunnel`
+  até isso ser revisitado** (ver RUNNING.md).
+
+- **"invalid flow state, no valid flow state found" mesmo com link
+  fresquíssimo.** Duas causas por trás deste erro, uma de cada vez:
+  1. O e-mail vinha embrulhado num link de rastreamento de clique da AWS SES
+     (via `onboarding@resend.dev`, o remetente de teste do Resend) —
+     serviços assim têm fama de pré-clicar o link antes da pessoa tocar
+     nele, consumindo o código de uso único. Resolvido verificando
+     `rachapila.com.br` no Resend (registros DNS no registro.br) e trocando
+     o remetente pra `noreply@rachapila.com.br`, que não tem rastreamento
+     configurado.
+  2. Isso sozinho não bastou — o erro persistiu até eu ler o código-fonte
+     instalado de `@supabase/auth-js`: `exchangeCodeForSession` espera
+     receber só o valor do `code`, não a URL inteira. `completeSignIn`
+     estava passando a URL completa do deep link como `auth_code`; o
+     servidor recebia um valor sem sentido e respondia com esse erro. A
+     correção foi extrair o `code` da URL antes de chamar a função.
+
+- **Nunca confie só na UI de configuração — quando possível, leia os logs
+  do servidor e a fonte da biblioteca instalada.** As duas causas reais
+  acima só apareceram depois de olhar os Auth Logs do Supabase (para ver o
+  `redirect_to` que o servidor realmente recebeu, não o que a UI dizia estar
+  cadastrado) e o `node_modules/@supabase/auth-js` instalado (para ver o
+  contrato real de `exchangeCodeForSession`, não a versão do exemplo mais
+  antigo que eu tinha em mente). Suposição por suposição não teria chegado
+  aqui.

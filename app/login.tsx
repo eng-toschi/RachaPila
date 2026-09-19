@@ -7,10 +7,10 @@
  * login antes de entregar valor").
  */
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, Text as RNText, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AUTH_REDIRECT_URL, useAuth } from '@/state/auth';
+import { useAuth } from '@/state/auth';
 import { Button, Card, Row, Text } from '@/ui/components';
 import { IconCheck, IconUser } from '@/ui/icons';
 import { useTheme } from '@/ui/theme';
@@ -21,7 +21,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/u;
 export default function LoginScreen() {
   const t = useTheme();
   const insets = useSafeAreaInsets();
-  const { session, loading, signInWithEmail, signOut, lastExchangeError } = useAuth();
+  const { session, loading, signInWithEmail, signOut } = useAuth();
 
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
@@ -167,26 +167,6 @@ export default function LoginScreen() {
             )}
           </>
         )}
-
-        {/* Depuração temporária do redirect do link mágico (ver DECISIONS.md,
-            09/2026 — o link estava caindo na Site URL em vez do app). Some
-            assim que o fluxo estiver confirmado funcionando de ponta a ponta. */}
-        <View style={{ position: 'absolute', left: SPACING.xl, right: SPACING.xl, bottom: insets.bottom + SPACING.sm }}>
-          <Text variant="caption" tone="faint" style={{ textAlign: 'center' }}>
-            redirect:
-          </Text>
-          <RNText selectable style={{ fontSize: 11, color: t.textFaint, textAlign: 'center' }}>
-            {AUTH_REDIRECT_URL}
-          </RNText>
-          {lastExchangeError !== undefined ? (
-            <RNText
-              selectable
-              style={{ fontSize: 11, color: t.negative, textAlign: 'center', marginTop: 4 }}
-            >
-              erro ao trocar código: {lastExchangeError}
-            </RNText>
-          ) : null}
-        </View>
       </View>
     </View>
   );

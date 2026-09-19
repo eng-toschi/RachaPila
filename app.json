@@ -7,6 +7,7 @@
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "icon": "./assets/icon.png",
     "ios": {
       "bundleIdentifier": "app.rachapila.mobile",
       "supportsTablet": false,
@@ -19,11 +20,18 @@
     "android": {
       "package": "app.rachapila.mobile",
       "edgeToEdgeEnabled": true,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#6D4AFF"
+      },
       "permissions": [
         "CAMERA",
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION"
       ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-router",
@@ -31,6 +39,18 @@
         "expo-location",
         {
           "locationWhenInUsePermission": "Para registrar onde cada despesa aconteceu, quando você tocar em \"Usar GPS\"."
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160,
+          "resizeMode": "contain",
+          "backgroundColor": "#FAF7F2",
+          "dark": {
+            "backgroundColor": "#16141A"
+          }
         }
       ]
     ],

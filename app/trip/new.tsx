@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { addParticipant, createTrip, setTripCurrencies } from '@/commands';
 import { localActorId } from '@/db/repositories';
 import { CurrencyPicker } from '@/features/expenses/CurrencyPicker';
+import { useAuth } from '@/state/auth';
 import { useMutate } from '@/state/database';
 import { Avatar, Button, Card, Chip, Divider, Row, Text } from '@/ui/components';
 import { IconPlus, IconTrash } from '@/ui/icons';
@@ -15,6 +16,7 @@ export default function NewTripScreen() {
   const t = useTheme();
   const insets = useSafeAreaInsets();
   const mutate = useMutate();
+  const { session } = useAuth();
 
   const [name, setName] = useState('');
   const [baseCurrency, setBaseCurrency] = useState<string>('BRL');
@@ -36,12 +38,15 @@ export default function NewTripScreen() {
     mutate((database, ctx) => {
       const tripId = createTrip(database, ctx, { name: name.trim(), baseCurrency });
       setTripCurrencies(database, ctx, tripId, otherCurrencies);
-      // Quem cria a viagem é "você" — identificado pelo aparelho enquanto não
-      // existe login (Fase 6).
+      // Quem cria a viagem é "você" — identificado pela conta, se já existir
+      // sessão, ou pelo aparelho enquanto não existir (Fase 6). Usar o id do
+      // aparelho mesmo já logado deixaria essa viagem nova sem dono de
+      // verdade até o próximo login, e a sincronização falharia com
+      // violação de chave estrangeira (ver DECISIONS.md, 19/09).
       addParticipant(database, ctx, {
         tripId,
         displayName: 'Você',
-        userId: localActorId(database),
+        userId: session === null ? localActorId(database) : session.user.id,
       });
       for (const person of people) {
         addParticipant(database, ctx, { tripId, displayName: person });

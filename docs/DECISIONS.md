@@ -738,3 +738,16 @@ Também: a mensagem de erro genérica de `createInvite` ("Não consegui
 sincronizar...") escondia esse erro real — sem mostrar a mensagem do
 Postgres/Supabase, esse diagnóstico teria sido só chute. Corrigido para
 sempre incluir o texto do erro subjacente.
+
+**Segundo teste ao vivo: o mesmo erro persistiu.** A migração acima só roda
+numa transição de `null` para uma sessão de verdade — cobre quem já tinha
+viagem antes de existir conta, mas não uma viagem **criada depois** de já
+estar logado: `app/trip/new.tsx` continuava chamando `localActorId()`
+incondicionalmente, sem checar se já havia sessão. Toda viagem nova nascia
+com o mesmo problema, mesmo com o usuário já de conta feita. Corrigido para
+usar `session.user.id` direto quando existe sessão, e só cair no id do
+aparelho quando não existe — a migração em `_layout.tsx` continua existindo
+para o caso original (viagem antiga, criada sem conta nenhuma). Uma viagem
+já quebrada (como a que gerou este erro) se autocorrige no próximo login
+completo (reabrir o app), porque `AuthProvider` sempre nasce com `session =
+null` e transiciona de novo — não precisa de código extra pra isso.

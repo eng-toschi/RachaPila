@@ -27,7 +27,8 @@ export async function createInvite(
 
   const syncResult = await syncTrip(db, tripId);
   if (!syncResult.ok) {
-    return { ok: false, message: 'Não consegui sincronizar a viagem antes de gerar o convite. Tenta de novo.' };
+    const detail = 'message' in syncResult.error ? syncResult.error.message : syncResult.error.code;
+    return { ok: false, message: `Não consegui sincronizar a viagem antes de gerar o convite: ${detail}` };
   }
 
   const token = Crypto.randomUUID();

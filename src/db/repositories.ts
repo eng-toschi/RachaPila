@@ -238,6 +238,23 @@ export function setLinkedUserId(db: Database, userId: string): void {
 }
 
 /**
+ * Viagens que alguém já compartilhou — as únicas que sincronizam.
+ *
+ * Sincronizar é OPT-IN por viagem, e o gesto que opta é convidar alguém (ou
+ * aceitar um convite): é aí que `sync_state` ganha uma linha. Subir toda
+ * viagem local para o servidor só porque a pessoa tem conta contrariaria o
+ * princípio do app (§1: a viagem vive no aparelho; a nuvem é consequência de
+ * dividir com alguém, não o padrão).
+ */
+export function listSyncedTripIds(db: Database): string[] {
+  return db.all<{ trip_id: string }>('SELECT trip_id FROM sync_state').map((row) => row.trip_id);
+}
+
+export function isTripSynced(db: Database, tripId: string): boolean {
+  return db.get<{ trip_id: string }>('SELECT trip_id FROM sync_state WHERE trip_id = ?', [tripId]) !== undefined;
+}
+
+/**
  * Preferências do aparelho (tema, por enquanto).
  *
  * Fora do outbox de propósito: escolher o tema escuro num celular não é

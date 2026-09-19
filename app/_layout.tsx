@@ -24,6 +24,7 @@ import { linkParticipantToUser } from '@/commands';
 import { findMe, listTrips, localActorId, setLinkedUserId } from '@/db/repositories';
 import { AuthProvider, useAuth } from '@/state/auth';
 import { DatabaseProvider, useDatabase } from '@/state/database';
+import { SyncProvider } from '@/state/sync';
 import { ThemeProvider, useTheme, useThemeControl } from '@/ui/theme';
 
 void SplashScreen.preventAutoHideAsync();
@@ -50,7 +51,9 @@ export default function RootLayout() {
       <DatabaseProvider>
         <ThemeProvider>
           <AuthProvider>
-            <Navigation />
+            <SyncProvider>
+              <Navigation />
+            </SyncProvider>
           </AuthProvider>
         </ThemeProvider>
       </DatabaseProvider>

@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, View, type DimensionValue } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { computeBalances, expenseInBase, totalSpent } from '@/domain/balance';
 import { formatMoney } from '@/domain/money';
 import { findMe, getTrip, listExpenses, listParticipants, listShares, loadLedger } from '@/db/repositories';
 import { useQuery } from '@/state/database';
 import { dayLabel, timeLabel } from '@/state/format';
+import { useSync } from '@/state/sync';
 import { Avatar, Badge, Button, Card, EmptyState, MoneyText, Row, SegmentedControl, Text } from '@/ui/components';
 import { CATEGORY_ICONS, IconBack, IconPlus, IconUsers } from '@/ui/icons';
 import { useTheme, useThemeControl } from '@/ui/theme';
@@ -42,6 +43,15 @@ export default function TripScreen() {
   const params = useLocalSearchParams();
   const tripId = typeof params.id === 'string' ? params.id : '';
   const [tab, setTab] = useState<'expenses' | 'balances'>('expenses');
+  const { syncNow, status: syncStatus } = useSync();
+
+  // Abrir a viagem é o momento em que estar desatualizado incomoda — não
+  // adianta o dado chegar depois que a pessoa já olhou o saldo e saiu.
+  useFocusEffect(
+    useCallback(() => {
+      syncNow(tripId);
+    }, [syncNow, tripId]),
+  );
 
   const view = useQuery<TripView | undefined>((db) => {
     const trip = getTrip(db, tripId);
@@ -130,6 +140,16 @@ export default function TripScreen() {
             <IconUsers size={24} color={t.text} />
           </Pressable>
         </Row>
+
+        {/* Só aparece quando falha. Enquanto sincroniza, ficar piscando um
+            "sincronizando…" a cada despesa lançada seria ruído — mas ficar
+            calado numa falha permanente esconderia que o grupo está vendo
+            números diferentes. */}
+        {syncStatus === 'error' ? (
+          <Text variant="caption" tone="negative" style={{ textAlign: 'center' }}>
+            Não consegui sincronizar agora — vou tentar de novo sozinho.
+          </Text>
+        ) : null}
 
         <Card style={{ paddingVertical: SPACING.md }}>
           <Row style={{ justifyContent: 'space-between' }}>

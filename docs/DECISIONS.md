@@ -633,3 +633,75 @@ a legenda de debug e os logs temporários já saíram do código.
   contrato real de `exchangeCodeForSession`, não a versão do exemplo mais
   antigo que eu tinha em mente). Suposição por suposição não teria chegado
   aqui.
+
+## 2026-09-19 — Push/pull e convite: como o resto da Fase 6 ficou desenhado
+
+Com o login funcionando, o resto da Fase 6 (§7.2, §10): sincronizar as
+viagens que já existem só no aparelho, e convidar alguém pra elas. Validado
+inteiro contra um Postgres local de verdade antes de chegar no Supabase —
+mesma técnica das entradas anteriores sobre `schema.sql`.
+
+- **Push relê o estado ATUAL da linha no SQLite, nunca reenvia o payload
+  gravado na operação.** O payload de uma op pode estar incompleto de
+  propósito (`setTripCurrencies` grava só `{id, currencies}`; um `delete`
+  grava só `{id, deletedAt}`) — interpretar cada formato do lado do servidor
+  seria reconstruir um op-log genérico à toa. Em vez disso, o app agrupa as
+  ops pendentes de uma viagem por `(entity, entityId)` e manda a linha
+  inteira, do jeito que ela está agora, uma vez por grupo. Bônus: várias
+  edições seguidas na mesma despesa viram um push só.
+
+- **Resolução de conflito mora em funções SQL no servidor
+  (`push_trip`/`push_participant`/`push_expense`/`push_settlement`), não no
+  `.upsert()` do cliente.** O `upsert()` do supabase-js não sabe expressar
+  "só sobrescreve se `(lamport, actor_id)` for maior" — isso vira um
+  `on conflict (id) do update ... where (...)` dentro de cada função. É a
+  mesma regra de LWW do §10, testada dos dois lados: `src/sync/apply.ts` faz
+  a versão local (pull) e `push_*` faz a versão do servidor (push), e o
+  bicho de duas réplicas convergindo é exatamente o mesmo teste em espírito
+  nas duas pontas (`tests/sync/apply.test.ts` cobre o lado local).
+
+- **"Tornar-se dono" de uma viagem exigiu DUAS políticas de bootstrap, não
+  uma — por causa da ordem de uma chave estrangeira.** `trip_members.trip_id`
+  referencia `trips(id)`, então a viagem precisa existir no servidor ANTES
+  de alguém conseguir virar dona dela ali — mas as políticas de
+  `trips`/`trip_currencies` exigem `is_trip_member` pra escrever. Isso é uma
+  corrente de dois elos, cada um dependendo do outro. A saída: duas políticas
+  de "achei sem dono" (`found an unowned trip`, `seed currencies of an
+  unowned trip`) que valem só enquanto NINGUÉM é dono ainda, permitindo o
+  primeiro push antes do `insert` em `trip_members` — que por sua vez tem a
+  própria política gêmea (`become owner of an unowned trip`). Descoberto
+  testando ao vivo contra um Postgres real: a primeira tentativa (só a
+  política de `trip_members`) falhava com violação de chave estrangeira.
+
+- **`push_trip` não usa `insert ... on conflict do update`, ao contrário dos
+  outros três.** Descoberta feita testando: o Postgres exige as políticas de
+  RLS de INSERT *e* UPDATE juntas (com E lógico) numa instrução dessas,
+  mesmo quando o conflito não acontece de verdade — o que quebra o bootstrap
+  acima (no instante do INSERT o dono ainda não é membro, e o `using` de
+  UPDATE reprovaria a linha nova). A saída foi tentar inserir e só cair para
+  um `UPDATE` (com o mesmo portão de LWW) se a linha já existir. Os outros
+  três RPCs não têm esse problema porque, para eles, ser membro já é
+  pré-requisito ANTES de qualquer push — não existe bootstrap ali.
+
+- **O cursor do pull é um JSON por tabela, não um número só.** `server_seq`
+  é uma sequência por tabela (`bigserial` em cada uma), não uma sequência
+  global — puxar `trips`, `participants`, `expenses` e `settlements`
+  precisa de quatro cursores independentes. Em vez de mudar o schema local
+  (uma coluna `cursor TEXT` só, por viagem, em `sync_state`), os quatro
+  cursores viajam como um JSON dentro dessa mesma coluna.
+
+- **Convite sem hospedagem: o link normal (`rachapila://join/<token>`) só
+  abre em build de verdade** — o Expo Go não é dono desse esquema. Enquanto
+  só existir Expo Go, `createInvite` manda os dois formatos juntos no
+  compartilhamento (o link, pro futuro, e o token cru), e a tela de login
+  ganhou "Tenho um convite" para colar qualquer um dos dois e navegar pra
+  `/join/[token]` manualmente. Sai quando o primeiro build de verdade
+  (`rachapila://`) existir e puder ser testado ponta a ponta.
+
+- **Ainda não fazem parte deste corte:** Realtime do Supabase (pull continua
+  manual, por enquanto disparado ao gerar convite e ao aceitar um), retry
+  exponencial de push falhado (§10 pede 1s→2s→…→5min com jitter — hoje uma
+  falha só marca a op e para, sem reagendar sozinho), e sincronizar
+  `trip_subgroups` (não sincroniza porque nada grava op pra ela hoje —
+  `rememberSubgroup` nunca chamou `record()`, isso é anterior a esta
+  entrada).

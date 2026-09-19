@@ -26,6 +26,8 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [showInvite, setShowInvite] = useState(false);
+  const [inviteInput, setInviteInput] = useState('');
 
   const validEmail = EMAIL_RE.test(email.trim());
 
@@ -40,6 +42,20 @@ export default function LoginScreen() {
         setErrorMessage(result.message);
       }
     });
+  };
+
+  /**
+   * Aceita tanto o link completo (`rachapila://join/<token>`) quanto só o
+   * código — o convite compartilhado (`createInvite`) manda os dois juntos
+   * justamente porque, sem build de verdade, o link ainda não abre sozinho.
+   */
+  const openInvite = (): void => {
+    const raw = inviteInput.trim();
+    if (raw === '') return;
+    const token = raw.includes('join/') ? raw.slice(raw.lastIndexOf('join/') + 'join/'.length) : raw;
+    router.push(`/join/${token}`);
+    setShowInvite(false);
+    setInviteInput('');
   };
 
   return (
@@ -89,6 +105,34 @@ export default function LoginScreen() {
               variant="secondary"
               onPress={() => { void signOut(); }}
             />
+
+            {showInvite ? (
+              <View style={{ width: '100%', gap: SPACING.sm }}>
+                <Card style={{ paddingVertical: SPACING.md }}>
+                  <TextInput
+                    value={inviteInput}
+                    onChangeText={setInviteInput}
+                    placeholder="Cole aqui o link ou o código do convite"
+                    placeholderTextColor={t.textFaint}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    accessibilityLabel="Link ou código do convite"
+                    style={{ fontSize: 15, fontFamily: FONT.semi, color: t.text, minHeight: MIN_TOUCH - 12 }}
+                  />
+                </Card>
+                <Button
+                  label="Entrar na viagem"
+                  onPress={openInvite}
+                  disabled={inviteInput.trim() === ''}
+                />
+              </View>
+            ) : (
+              <Pressable accessibilityRole="button" onPress={() => { setShowInvite(true); }} hitSlop={8}>
+                <Text variant="label" tone="accent">
+                  Tenho um convite
+                </Text>
+              </Pressable>
+            )}
           </View>
         ) : (
           <>

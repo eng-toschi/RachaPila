@@ -103,15 +103,42 @@ Tudo funciona **sem internet** — pode ligar o modo avião e continuar usando.
     Cadastre no painel do Supabase (Authentication → URL Configuration →
     Redirect URLs) os dois padrões: `exp://**` e `rachapila://**`. Digite o
     e-mail, toque em "Enviar link mágico", e abra o e-mail **no mesmo
-    celular** — o link precisa voltar para o app que mandou o pedido. O
-    resto da Fase 6 (convite, sincronizar entre aparelhos) ainda não existe;
-    isto é só a entrada.
+    celular** — o link precisa voltar para o app que mandou o pedido.
+11. **Convidar e sincronizar (Fase 6)** — em **Participantes**, com sessão
+    ativa: cada fantasma (quem ainda não tem conta vinculada) ganha um
+    "Convidar [nome]" — isso sincroniza a viagem inteira com o Supabase pela
+    primeira vez (pode demorar um instante se a viagem já tiver muita coisa
+    lançada) e abre o compartilhamento do sistema com o convite. Existe
+    também "Convidar por link", sem apontar pra ninguém específico, no fim
+    da lista.
+
+    **Testando sozinho, sem dois celulares:** o link (`rachapila://join/...`)
+    só abre sozinho num build de verdade — dentro do Expo Go, ninguém é dono
+    desse esquema. Em vez de compartilhar de verdade, copia o **token** que
+    aparece junto do link, entra na conta com um e-mail diferente (ou no
+    Expo Go de outro aparelho/emulador), abre a tela de entrada, toca em
+    "Tenho um convite" e cola o token ali.
+
+    Se o convite era **direcionado** (a partir de um "Convidar [nome]"),
+    aceitar já entra direto na viagem, com o histórico daquela pessoa. Se
+    era **genérico** ("Convidar por link"), a tela pergunta "quem é você?"
+    entre os fantasmas ainda soltos — escolher um herda o histórico dele,
+    "sou novo aqui" cria alguém do zero.
+
+    **Antes de testar**, cole o `supabase/schema.sql` atualizado de novo no
+    SQL Editor do Supabase — é seguro rodar por cima do que já existe (todo
+    `create` é `if not exists`/`or replace`), e ele ganhou as funções de
+    sincronização (`push_trip`, `push_participant`, `push_expense`,
+    `push_settlement`) e três políticas novas de RLS (o "bootstrap" de virar
+    dono de uma viagem sem dono ainda).
 
 ### O que ainda NÃO existe
 
-- Convite por link ou QR, e sincronização entre aparelhos (Fase 6, em
-  andamento — a entrada já existe, o resto não). A viagem vive só naquele
-  celular.
+- Sincronização automática em segundo plano — hoje só acontece ao gerar ou
+  aceitar um convite. Não existe Realtime nem novo tentativa automática de
+  um push que falhou (§10 pede retry exponencial; ainda não tem).
+- Sincronizar o "lembrete" de subgrupos usados numa despesa (é só
+  conveniência de tela, não afeta saldo).
 - Busca automática de cotação (Fase 4).
 - Foto de recibo, exportar CSV, notificações (Fase 7).
 

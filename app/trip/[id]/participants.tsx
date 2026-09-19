@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, Share, TextInput, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { addParticipant, updateParticipant } from '@/commands';
 import { findMe, listParticipants } from '@/db/repositories';
 import { maskPixKey, parsePixKey } from '@/domain/pix';
-import { useMutate, useQuery } from '@/state/database';
+import { createInvite } from '@/services/invites';
+import { useAuth } from '@/state/auth';
+import { useDatabase, useMutate, useQuery } from '@/state/database';
 import { Avatar, Button, Card, Divider, Row, Text } from '@/ui/components';
 import { IconBack, IconCheck, IconInfo, IconPlus } from '@/ui/icons';
 import { useTheme } from '@/ui/theme';
@@ -15,6 +17,8 @@ export default function ParticipantsScreen() {
   const t = useTheme();
   const insets = useSafeAreaInsets();
   const mutate = useMutate();
+  const { db } = useDatabase();
+  const { session } = useAuth();
   const params = useLocalSearchParams();
   const tripId = typeof params.id === 'string' ? params.id : '';
 
@@ -22,18 +26,37 @@ export default function ParticipantsScreen() {
   const [editing, setEditing] = useState<string | undefined>(undefined);
   const [pixDraft, setPixDraft] = useState('');
   const [pixError, setPixError] = useState<string | undefined>(undefined);
+  const [invitingId, setInvitingId] = useState<string | undefined>(undefined);
+  const [inviteError, setInviteError] = useState<string | undefined>(undefined);
 
-  const people = useQuery((db) =>
-    listParticipants(db, tripId).map((p) => ({
+  const people = useQuery((database) =>
+    listParticipants(database, tripId).map((p) => ({
       id: p.id,
       name: p.display_name,
       seed: p.avatar_seed,
       pixKey: p.pix_key,
       pixKind: p.pix_key_kind,
-      isMe: findMe(db, tripId)?.id === p.id,
+      isMe: findMe(database, tripId)?.id === p.id,
+      linked: p.user_id !== null,
       archived: p.archived_at !== null,
     })),
   );
+
+  const invite = async (participantId?: string): Promise<void> => {
+    setInvitingId(participantId ?? 'trip');
+    setInviteError(undefined);
+    const result = await createInvite(db, tripId, participantId);
+    setInvitingId(undefined);
+    if (!result.ok) {
+      setInviteError(result.message);
+      return;
+    }
+    await Share.share({
+      message:
+        `Entra na nossa viagem no RachaPila! Toca no link (ou cola no navegador do celular): ${result.deepLink}\n\n` +
+        `Se o link não abrir o app, cola este código na tela "Tenho um convite": ${result.token}`,
+    });
+  };
 
   const add = (): void => {
     const name = draft.trim();
@@ -123,6 +146,19 @@ export default function ParticipantsScreen() {
                   </Pressable>
                 </Row>
 
+                {session !== null && !person.linked && !person.isMe ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Convidar ${person.name}`}
+                    onPress={() => { void invite(person.id); }}
+                    disabled={invitingId !== undefined}
+                  >
+                    <Text variant="label" tone="accent">
+                      {invitingId === person.id ? 'Gerando convite…' : `Convidar ${person.name}`}
+                    </Text>
+                  </Pressable>
+                ) : null}
+
                 {editing === person.id ? (
                   <View style={{ gap: SPACING.sm }}>
                     <Row>
@@ -190,15 +226,41 @@ export default function ParticipantsScreen() {
           </Row>
         </Card>
 
-        <Card style={{ backgroundColor: t.surfaceAlt }}>
-          <Row style={{ alignItems: 'flex-start' }}>
-            <IconInfo size={18} color={t.textMuted} />
-            <Text variant="caption" tone="muted" style={{ flex: 1, lineHeight: 18 }}>
-              O convite por link e QR chega junto com a sincronização entre aparelhos. Por enquanto a
-              viagem vive só neste celular — as despesas em nome de cada pessoa já funcionam.
-            </Text>
-          </Row>
-        </Card>
+        {session === null ? (
+          <Card style={{ backgroundColor: t.surfaceAlt }}>
+            <Row style={{ alignItems: 'flex-start' }}>
+              <IconInfo size={18} color={t.textMuted} />
+              <Text variant="caption" tone="muted" style={{ flex: 1, lineHeight: 18 }}>
+                Entre na sua conta (ícone de pessoa na home) para convidar alguém pra esta viagem.
+              </Text>
+            </Row>
+          </Card>
+        ) : (
+          <Card>
+            <Row style={{ justifyContent: 'space-between' }}>
+              <View style={{ flex: 1, gap: 2 }}>
+                <Text variant="body" strong>
+                  Convidar por link
+                </Text>
+                <Text variant="caption" tone="muted">
+                  Quem entrar escolhe quem é na viagem — não cria gente nova à toa.
+                </Text>
+              </View>
+              <Button
+                label={invitingId === 'trip' ? 'Gerando…' : 'Convidar'}
+                variant="secondary"
+                onPress={() => { void invite(undefined); }}
+                disabled={invitingId !== undefined}
+              />
+            </Row>
+          </Card>
+        )}
+
+        {inviteError === undefined ? null : (
+          <Text variant="caption" tone="negative">
+            {inviteError}
+          </Text>
+        )}
       </ScrollView>
 
       <View style={{ position: 'absolute', left: SPACING.xl, right: SPACING.xl, bottom: insets.bottom + SPACING.lg }}>

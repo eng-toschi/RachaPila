@@ -218,17 +218,44 @@ create policy "member reads trip" on public.trips
   for select using (public.is_trip_member(id));
 create policy "member writes trip" on public.trips
   for all using (public.is_trip_member(id)) with check (public.is_trip_member(id));
+-- Mesmo bootstrap de "become owner of an unowned trip" (mais abaixo), do
+-- outro lado da mesma corrente: `trip_members.trip_id` referencia esta
+-- tabela, então a viagem precisa existir aqui ANTES de alguém conseguir virar
+-- dona dela — o app sempre chama `push_trip` primeiro, depois entra em
+-- `trip_members`. Só vale enquanto a viagem não tem dono nenhum ainda.
+create policy "found an unowned trip" on public.trips
+  for insert with check (not exists (select 1 from public.trip_members m where m.trip_id = id));
 
 create policy "member reads trip_currencies" on public.trip_currencies
   for select using (public.is_trip_member(trip_id));
 create policy "member writes trip_currencies" on public.trip_currencies
   for all using (public.is_trip_member(trip_id)) with check (public.is_trip_member(trip_id));
+-- Mesmo bootstrap de "found an unowned trip": `push_trip` grava a viagem e as
+-- moedas juntas, antes de o chamador virar dono em `trip_members` — só vale
+-- enquanto a viagem ainda não tem dono.
+create policy "seed currencies of an unowned trip" on public.trip_currencies
+  for insert with check (
+    not exists (select 1 from public.trip_members m where m.trip_id = trip_currencies.trip_id)
+  );
 
 create policy "member reads trip_members" on public.trip_members
   for select using (public.is_trip_member(trip_id));
--- Ninguém escreve em trip_members direto do cliente: entrar numa viagem
--- passa pela função de aceitar convite (abaixo), que roda com privilégio de
--- servidor e confere o token antes de inserir a linha.
+-- Entrar numa viagem QUE JÁ TEM DONO passa pela função de aceitar convite
+-- (abaixo), que roda com privilégio de servidor e confere o token antes de
+-- inserir a linha — ninguém se auto-adiciona a uma viagem alheia.
+--
+-- A exceção é fundar: a primeira sincronização de uma viagem criada só no
+-- aparelho (Fase 3-5, sem conta nenhuma) precisa de alguém como dono antes
+-- de as políticas de `trips`/`participants` (que exigem `is_trip_member`)
+-- deixarem esse primeiro push acontecer. Esta política permite exatamente
+-- isso — tornar-se dono — e só isso: só serve enquanto NINGUÉM é dono ainda,
+-- então não dá para tomar posse de uma viagem que alguém já sincronizou.
+create policy "become owner of an unowned trip" on public.trip_members
+  for insert with check (
+    user_id = auth.uid()
+    and role = 'owner'
+    and not exists (select 1 from public.trip_members m where m.trip_id = trip_members.trip_id)
+  );
 
 create policy "member reads trip_invites" on public.trip_invites
   for select using (public.is_trip_member(trip_id));
@@ -313,5 +340,154 @@ begin
   end if;
 
   return invite.trip_id;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Push (§10) — o aparelho manda o estado ATUAL de uma linha, nunca um diff
+--
+-- `security invoker` (padrão, sem cláusula): quem chama já precisa ser membro
+-- da viagem para a política "member writes X" deixar a linha entrar — estas
+-- funções não abrem exceção nenhuma de segurança, só concentram a resolução
+-- de conflito (LWW por `(lamport, actor_id)`, §10) que um `.upsert()` comum
+-- do cliente não sabe expressar.
+--
+-- Cada uma corresponde a exatamente um `entity` do `ops_outbox` do aparelho
+-- (`src/sync/outbox.ts`). O app relê a linha inteira do SQLite local na hora
+-- de empurrar — nunca reenvia o payload antigo gravado na operação — então
+-- só existe uma forma de cada linha chegar aqui.
+-- ---------------------------------------------------------------------------
+
+-- `push_trip` NÃO usa `insert ... on conflict do update`: o Postgres exige as
+-- políticas de RLS de INSERT *e* UPDATE juntas (com E) numa instrução dessas,
+-- mesmo quando o conflito não acontece — o que quebraria exatamente o
+-- bootstrap que "found an unowned trip" existe para viabilizar (o dono ainda
+-- não é membro no instante do INSERT, então o `using` de UPDATE de
+-- "member writes trip" reprovaria a linha nova). Por isso: tenta inserir,
+-- e só cai para UPDATE (com o mesmo portão de LWW) se a linha já existir.
+create or replace function public.push_trip(
+  p_id uuid, p_name text, p_base_currency text, p_starts_on date, p_ends_on date,
+  p_cover_color text, p_archived_at timestamptz, p_deleted_at timestamptz,
+  p_lamport bigint, p_actor_id text, p_updated_at timestamptz,
+  p_currencies text[]
+) returns void language plpgsql set search_path = public as $$
+declare
+  applied int;
+begin
+  begin
+    insert into public.trips
+      (id, name, base_currency, starts_on, ends_on, cover_color, archived_at, deleted_at,
+       lamport, actor_id, updated_at)
+    values
+      (p_id, p_name, p_base_currency, p_starts_on, p_ends_on, p_cover_color, p_archived_at, p_deleted_at,
+       p_lamport, p_actor_id, p_updated_at);
+    applied := 1;
+  exception when unique_violation then
+    update public.trips set
+      name = p_name, base_currency = p_base_currency, starts_on = p_starts_on, ends_on = p_ends_on,
+      cover_color = p_cover_color, archived_at = p_archived_at, deleted_at = p_deleted_at,
+      lamport = p_lamport, actor_id = p_actor_id, updated_at = p_updated_at
+    where id = p_id and (p_lamport, p_actor_id) > (public.trips.lamport, public.trips.actor_id);
+    get diagnostics applied = row_count;
+  end;
+
+  if applied > 0 then
+    delete from public.trip_currencies where trip_id = p_id;
+    insert into public.trip_currencies (trip_id, code, position)
+    select p_id, code, ord - 1 from unnest(p_currencies) with ordinality as t(code, ord);
+  end if;
+end;
+$$;
+
+create or replace function public.push_participant(
+  p_id uuid, p_trip_id uuid, p_display_name text, p_user_id uuid, p_avatar_seed text,
+  p_email text, p_pix_key text, p_pix_key_kind text, p_pix_name text, p_pix_city text,
+  p_merged_into uuid, p_archived_at timestamptz, p_deleted_at timestamptz,
+  p_lamport bigint, p_actor_id text, p_updated_at timestamptz
+) returns void language plpgsql set search_path = public as $$
+begin
+  insert into public.participants
+    (id, trip_id, display_name, user_id, avatar_seed, email, pix_key, pix_key_kind, pix_name,
+     pix_city, merged_into, archived_at, deleted_at, lamport, actor_id, updated_at)
+  values
+    (p_id, p_trip_id, p_display_name, p_user_id, p_avatar_seed, p_email, p_pix_key, p_pix_key_kind,
+     p_pix_name, p_pix_city, p_merged_into, p_archived_at, p_deleted_at, p_lamport, p_actor_id, p_updated_at)
+  on conflict (id) do update set
+    display_name = excluded.display_name, user_id = excluded.user_id, avatar_seed = excluded.avatar_seed,
+    email = excluded.email, pix_key = excluded.pix_key, pix_key_kind = excluded.pix_key_kind,
+    pix_name = excluded.pix_name, pix_city = excluded.pix_city, merged_into = excluded.merged_into,
+    archived_at = excluded.archived_at, deleted_at = excluded.deleted_at, lamport = excluded.lamport,
+    actor_id = excluded.actor_id, updated_at = excluded.updated_at
+  where (excluded.lamport, excluded.actor_id) > (public.participants.lamport, public.participants.actor_id);
+end;
+$$;
+
+create or replace function public.push_expense(
+  p_id uuid, p_trip_id uuid, p_description text, p_category text, p_amount_cents bigint,
+  p_currency text, p_fx_rate_ppm bigint, p_fx_manual boolean, p_fx_as_of date,
+  p_payment_method text, p_iof_ppm bigint, p_spent_on date, p_spent_at text,
+  p_place_label text, p_place_lat double precision, p_place_lon double precision,
+  p_paid_by uuid, p_split_type text, p_note text, p_created_by text,
+  p_deleted_at timestamptz, p_lamport bigint, p_actor_id text, p_updated_at timestamptz,
+  -- Array de objetos {participant_id, input_cents, computed_cents, position} —
+  -- as partes são substituídas em bloco junto com a despesa-mãe (§10), nunca
+  -- mescladas linha a linha.
+  p_shares jsonb
+) returns void language plpgsql set search_path = public as $$
+declare
+  applied int;
+begin
+  insert into public.expenses
+    (id, trip_id, description, category, amount_cents, currency, fx_rate_ppm, fx_manual, fx_as_of,
+     payment_method, iof_ppm, spent_on, spent_at, place_label, place_lat, place_lon, paid_by,
+     split_type, note, created_by, deleted_at, lamport, actor_id, updated_at)
+  values
+    (p_id, p_trip_id, p_description, p_category, p_amount_cents, p_currency, p_fx_rate_ppm, p_fx_manual,
+     p_fx_as_of, p_payment_method, p_iof_ppm, p_spent_on, p_spent_at, p_place_label, p_place_lat,
+     p_place_lon, p_paid_by, p_split_type, p_note, p_created_by, p_deleted_at, p_lamport, p_actor_id,
+     p_updated_at)
+  on conflict (id) do update set
+    description = excluded.description, category = excluded.category, amount_cents = excluded.amount_cents,
+    currency = excluded.currency, fx_rate_ppm = excluded.fx_rate_ppm, fx_manual = excluded.fx_manual,
+    fx_as_of = excluded.fx_as_of, payment_method = excluded.payment_method, iof_ppm = excluded.iof_ppm,
+    spent_on = excluded.spent_on, spent_at = excluded.spent_at, place_label = excluded.place_label,
+    place_lat = excluded.place_lat, place_lon = excluded.place_lon, paid_by = excluded.paid_by,
+    split_type = excluded.split_type, note = excluded.note, deleted_at = excluded.deleted_at,
+    lamport = excluded.lamport, actor_id = excluded.actor_id, updated_at = excluded.updated_at
+  where (excluded.lamport, excluded.actor_id) > (public.expenses.lamport, public.expenses.actor_id);
+
+  get diagnostics applied = row_count;
+  if applied > 0 then
+    delete from public.expense_shares where expense_id = p_id;
+    insert into public.expense_shares (expense_id, participant_id, input_cents, computed_cents, position)
+    select
+      p_id,
+      (s->>'participant_id')::uuid,
+      (s->>'input_cents')::bigint,
+      (s->>'computed_cents')::bigint,
+      (s->>'position')::integer
+    from jsonb_array_elements(p_shares) as s;
+  end if;
+end;
+$$;
+
+create or replace function public.push_settlement(
+  p_id uuid, p_trip_id uuid, p_from_id uuid, p_to_id uuid, p_amount_cents bigint,
+  p_currency text, p_fx_rate_ppm bigint, p_settled_on date, p_note text,
+  p_deleted_at timestamptz, p_lamport bigint, p_actor_id text, p_updated_at timestamptz
+) returns void language plpgsql set search_path = public as $$
+begin
+  insert into public.settlements
+    (id, trip_id, from_id, to_id, amount_cents, currency, fx_rate_ppm, settled_on, note,
+     deleted_at, lamport, actor_id, updated_at)
+  values
+    (p_id, p_trip_id, p_from_id, p_to_id, p_amount_cents, p_currency, p_fx_rate_ppm, p_settled_on, p_note,
+     p_deleted_at, p_lamport, p_actor_id, p_updated_at)
+  on conflict (id) do update set
+    from_id = excluded.from_id, to_id = excluded.to_id, amount_cents = excluded.amount_cents,
+    currency = excluded.currency, fx_rate_ppm = excluded.fx_rate_ppm, settled_on = excluded.settled_on,
+    note = excluded.note, deleted_at = excluded.deleted_at, lamport = excluded.lamport,
+    actor_id = excluded.actor_id, updated_at = excluded.updated_at
+  where (excluded.lamport, excluded.actor_id) > (public.settlements.lamport, public.settlements.actor_id);
 end;
 $$;

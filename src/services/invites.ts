@@ -13,7 +13,7 @@ import { syncTrip } from '../sync/client';
 import { supabase } from './supabase';
 
 export type CreateInviteResult =
-  | { readonly ok: true; readonly token: string; readonly deepLink: string }
+  | { readonly ok: true; readonly token: string }
   | { readonly ok: false; readonly message: string };
 
 export async function createInvite(
@@ -40,5 +40,5 @@ export async function createInvite(
   });
   if (error !== null) return { ok: false, message: error.message };
 
-  return { ok: true, token, deepLink: `rachapila://join/${token}` };
+  return { ok: true, token };
 }

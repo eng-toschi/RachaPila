@@ -105,34 +105,6 @@ export default function LoginScreen() {
               variant="secondary"
               onPress={() => { void signOut(); }}
             />
-
-            {showInvite ? (
-              <View style={{ width: '100%', gap: SPACING.sm }}>
-                <Card style={{ paddingVertical: SPACING.md }}>
-                  <TextInput
-                    value={inviteInput}
-                    onChangeText={setInviteInput}
-                    placeholder="Cole aqui o link ou o código do convite"
-                    placeholderTextColor={t.textFaint}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    accessibilityLabel="Link ou código do convite"
-                    style={{ fontSize: 15, fontFamily: FONT.semi, color: t.text, minHeight: MIN_TOUCH - 12 }}
-                  />
-                </Card>
-                <Button
-                  label="Entrar na viagem"
-                  onPress={openInvite}
-                  disabled={inviteInput.trim() === ''}
-                />
-              </View>
-            ) : (
-              <Pressable accessibilityRole="button" onPress={() => { setShowInvite(true); }} hitSlop={8}>
-                <Text variant="label" tone="accent">
-                  Tenho um convite
-                </Text>
-              </Pressable>
-            )}
           </View>
         ) : (
           <>
@@ -210,6 +182,44 @@ export default function LoginScreen() {
               </View>
             )}
           </>
+        )}
+
+        {/* Fora das duas condições acima de propósito: quem recebe um convite
+            quase nunca está logado ainda — esconder isto de quem está de fora
+            é esconder justamente de quem precisa. A tela `/join/[token]` pede
+            o login sozinha e continua de onde parou quando a sessão chega. */}
+        {loading ? null : showInvite ? (
+          <View style={{ gap: SPACING.sm }}>
+            <Card style={{ paddingVertical: SPACING.md }}>
+              <TextInput
+                value={inviteInput}
+                onChangeText={setInviteInput}
+                placeholder="Cole o código do convite"
+                placeholderTextColor={t.textFaint}
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoFocus
+                accessibilityLabel="Código do convite"
+                style={{ fontSize: 15, fontFamily: FONT.semi, color: t.text, minHeight: MIN_TOUCH - 12 }}
+              />
+            </Card>
+            <Button
+              label="Entrar na viagem"
+              onPress={openInvite}
+              disabled={inviteInput.trim() === ''}
+            />
+            <Pressable accessibilityRole="button" onPress={() => { setShowInvite(false); }} hitSlop={8}>
+              <Text variant="label" tone="muted" style={{ textAlign: 'center' }}>
+                Cancelar
+              </Text>
+            </Pressable>
+          </View>
+        ) : (
+          <Pressable accessibilityRole="button" onPress={() => { setShowInvite(true); }} hitSlop={8}>
+            <Text variant="label" tone="accent" style={{ textAlign: 'center' }}>
+              Tenho um convite
+            </Text>
+          </Pressable>
         )}
       </View>
     </View>

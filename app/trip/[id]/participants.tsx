@@ -51,10 +51,16 @@ export default function ParticipantsScreen() {
       setInviteError(result.message);
       return;
     }
+    // Sem o link `https://` da Fase 7 (exige hospedar a página do convite), o
+    // `rachapila://` vira texto morto em WhatsApp e afins — nenhum app deles
+    // transforma esquema customizado em link tocável. Mandar o código na
+    // frente é o que de fato funciona hoje; o link some da mensagem até
+    // existir uma página de verdade para receber quem ainda não tem o app.
     await Share.share({
       message:
-        `Entra na nossa viagem no RachaPila! Toca no link (ou cola no navegador do celular): ${result.deepLink}\n\n` +
-        `Se o link não abrir o app, cola este código na tela "Tenho um convite": ${result.token}`,
+        `Entra na nossa viagem no RachaPila!\n\n` +
+        `Código do convite: ${result.token}\n\n` +
+        `No app, toque no ícone de pessoa na tela inicial → "Tenho um convite" → cole o código.`,
     });
   };
 

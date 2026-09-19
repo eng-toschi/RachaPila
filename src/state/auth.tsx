@@ -62,12 +62,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     /**
      * O link mágico chega como deep link, não como navegação de navegador —
      * é por isso que `detectSessionInUrl` está desligado no cliente (isso é
-     * coisa de web). Aqui a URL completa (com o `code` da PKCE) é entregue à
-     * mão para o Supabase trocar por uma sessão.
+     * coisa de web). `exchangeCodeForSession` espera só o valor do `code`,
+     * não a URL inteira (documentado assim em `@supabase/auth-js`, embora
+     * versões antigas da lib aceitassem a URL) — mandar a URL inteira faz o
+     * servidor receber um `auth_code` inválido e responder "invalid flow
+     * state", com o app parecendo travado sem pista nenhuma do motivo.
      */
     const completeSignIn = (url: string, retriesLeft = 2): void => {
       if (!url.includes('code=')) return;
-      void supabase.auth.exchangeCodeForSession(url).then(({ error }) => {
+      const code = new URL(url).searchParams.get('code');
+      if (code === null) return;
+      void supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
         /**
          * A troca do código costuma falhar uma vez por um soluço de rede bem
          * na hora em que o Safari devolve o controle pro app (visto ao vivo:

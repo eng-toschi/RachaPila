@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RachaPila — dividir contas de viagem sem planilha</title>
+<meta name="description" content="Divida as contas da viagem com seus amigos: funciona offline, em várias moedas, com IOF e Pix copia e cola.">
+<style>
+  :root {
+    --bg: #FAF7F2; --surface: #FFFFFF; --text: #1F1B16; --muted: #7A7168;
+    --border: #E8E1D7; --accent: #6D4AFF; --on-accent: #FFFFFF;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16141A; --surface: #201D26; --text: #F5F1EC; --muted: #A49CB0;
+      --border: #322D3B; --accent: #9B7BFF; --on-accent: #16141A;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 0 16px;
+  }
+  main { max-width: 680px; margin: 0 auto; padding: 72px 0 80px; }
+  .mark { width: 60px; height: 60px; display: block; margin-bottom: 28px; }
+  h1 { font-size: 36px; line-height: 1.15; letter-spacing: -0.03em; margin: 0 0 12px; }
+  .lede { font-size: 19px; color: var(--muted); margin: 0 0 40px; max-width: 34ch; }
+  h2 { font-size: 19px; letter-spacing: -0.01em; margin: 44px 0 10px; }
+  ul { padding-left: 20px; }
+  li { margin: 8px 0; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 20px 22px; margin: 28px 0;
+  }
+  .card p:first-child { margin-top: 0; }
+  .card p:last-child { margin-bottom: 0; }
+  a { color: var(--accent); }
+  code {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 2px 6px; font-size: 14px;
+  }
+  footer { margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
+  footer a { margin-right: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <svg class="mark" viewBox="0 0 100 100" aria-hidden="true">
+    <g fill="var(--accent)">
+      <path d="M50 50 L52.7 6.1 A44 44 0 0 1 74.3 86.7 Z"/>
+      <path d="M50 50 L69.6 89.4 A44 44 0 0 1 6.1 52.7 Z"/>
+      <path d="M50 50 L6.1 47.3 A44 44 0 0 1 47.3 6.1 Z"/>
+    </g>
+    <circle cx="50" cy="50" r="17" fill="var(--bg)"/>
+  </svg>
+
+  <h1>RachaPila</h1>
+  <p class="lede">Dividir as contas da viagem entre amigos, sem planilha e sem discussão no fim.</p>
+
+  <h2>O que ele faz</h2>
+  <ul>
+    <li><strong>Funciona sem internet.</strong> Lance a despesa no metrô de Tóquio; sincroniza quando der.</li>
+    <li><strong>Várias moedas.</strong> A cotação é a do dia do gasto, congelada no lançamento — e o IOF entra na conta, porque ele aparece na fatura.</li>
+    <li><strong>Divisão de verdade.</strong> Por cabeça, por valor exato, ou só entre quem participou daquele táxi.</li>
+    <li><strong>Fechamento com Pix.</strong> Quem paga a quem, com código copia e cola e o valor já embutido.</li>
+    <li><strong>Sem cadastrar ninguém.</strong> As pessoas entram só pelo nome; conta é só para quem quiser sincronizar.</li>
+  </ul>
+
+  <h2>Recebi um convite</h2>
+  <div class="card">
+    <p>
+      Instale o RachaPila, abra o app e toque no ícone de pessoa na tela inicial. Depois, em
+      <strong>“Tenho um convite”</strong>, cole o código que você recebeu.
+    </p>
+    <p>
+      Você vai escolher quem é na viagem, e as despesas já lançadas em seu nome passam a ser suas —
+      sem virar uma segunda pessoa na lista.
+    </p>
+  </div>
+
+  <h2>Suporte</h2>
+  <p>
+    Algo errado, uma conta que não fecha ou uma ideia para melhorar? Escreva para
+    <a href="mailto:contato@rachapila.com.br">contato@rachapila.com.br</a>. Se for um valor que
+    pareceu errado, mande um print — é o tipo de coisa que precisa ser investigada de verdade.
+  </p>
+
+  <footer>
+    <a href="./privacidade.html">Privacidade</a>
+    <a href="mailto:contato@rachapila.com.br">Contato</a>
+  </footer>
+</main>
+</body>
+</html>

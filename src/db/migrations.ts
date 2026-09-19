@@ -225,12 +225,29 @@ CREATE INDEX idx_expenses_trip_date
   ON expenses(trip_id, spent_on DESC, spent_at DESC) WHERE deleted_at IS NULL;
 `;
 
+/**
+ * Sexta: quem "eu" sou depois de entrar na conta (Fase 6).
+ *
+ * Antes de existir login, "eu" era só o `actor_id` do aparelho — por isso um
+ * participante "Você" (`app/trip/new.tsx`) nasce com `user_id = actor_id do
+ * aparelho`, um valor local que não existe em lugar nenhum do servidor.
+ * Depois do login, essa mesma linha é migrada para o id de verdade do
+ * Supabase (`linkParticipantToUser`), e `findMe` (`db/repositories.ts`)
+ * precisa continuar reconhecendo "eu" nos dois estados — antes e depois da
+ * migração — sem duplicar a noção de identidade local espalhada em várias
+ * tabelas.
+ */
+const LINKED_USER_ID = `
+ALTER TABLE device_state ADD COLUMN linked_user_id TEXT;
+`;
+
 export const MIGRATIONS: readonly Migration[] = [
   { version: 1, name: 'initial', sql: INITIAL },
   { version: 2, name: 'pix_iof_subgroups', sql: PIX_IOF_SUBGROUPS },
   { version: 3, name: 'trip_currencies', sql: TRIP_CURRENCIES },
   { version: 4, name: 'app_settings', sql: APP_SETTINGS },
   { version: 5, name: 'expense_time_place', sql: EXPENSE_TIME_PLACE },
+  { version: 6, name: 'linked_user_id', sql: LINKED_USER_ID },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1]?.version ?? 0;

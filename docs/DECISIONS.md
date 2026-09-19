@@ -705,3 +705,36 @@ mesma técnica das entradas anteriores sobre `schema.sql`.
   `trip_subgroups` (não sincroniza porque nada grava op pra ela hoje —
   `rememberSubgroup` nunca chamou `record()`, isso é anterior a esta
   entrada).
+
+## 2026-09-19 — Primeiro teste ao vivo do convite: "você" não existe no servidor
+
+Primeiro "Convidar" real bateu em `insert or update on table "participants"
+violates foreign key constraint "participants_user_id_fkey"`. Causa: o
+participante "Você" (criado em `app/trip/new.tsx`, antes de existir login)
+nasce com `user_id = actor_id do aparelho` — um valor local, não um id do
+Supabase. Isso era um problema latente desde a Fase 3, só nunca tinha
+esbarrado em nada que checasse — o comentário de `findMe` já avisava
+("Quando o login chegar, `linkParticipantToUser` troca isso... sem
+migração"), mas nada de fato CHAMAVA essa troca quando o login acontecia.
+
+Duas peças, porque trocar o `user_id` sozinho quebraria outra coisa:
+
+1. **A migração em si.** `app/_layout.tsx` ganhou um efeito que roda assim
+   que `session` deixa de ser `null`: para cada viagem local, se o
+   participante "eu" (`findMe`) ainda tem `user_id = actor_id do aparelho`,
+   troca pelo id de verdade da sessão (`linkParticipantToUser` — o mesmo
+   comando do convite, então a troca já sai como uma op sincronizável).
+
+2. **`findMe` reconhecer "eu" nos dois estados.** O `JOIN` de `findMe`
+   comparava só contra `device_state.actor_id` — assim que a migração acima
+   roda, o `user_id` do participante deixa de bater com isso, e `findMe`
+   para de achar "você" (quebraria o "· você" na lista de participantes, o
+   destaque do saldo próprio, etc.). Nova coluna `device_state.linked_user_id`
+   (migração 6, `linked_user_id`), gravada por `setLinkedUserId` no mesmo
+   instante da migração; `findMe` agora compara contra os dois
+   (`p.user_id IN (d.actor_id, d.linked_user_id)`).
+
+Também: a mensagem de erro genérica de `createInvite` ("Não consegui
+sincronizar...") escondia esse erro real — sem mostrar a mensagem do
+Postgres/Supabase, esse diagnóstico teria sido só chute. Corrigido para
+sempre incluir o texto do erro subjacente.

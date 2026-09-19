@@ -207,14 +207,18 @@ export function loadLedger(db: Database, tripId: string): TripLedger {
 /**
  * Qual participante é "você" nesta viagem.
  *
- * Enquanto não existem contas (Fase 6), a identidade é a do próprio aparelho:
- * quem cria a viagem entra com o `actor_id` do dispositivo. Quando o login
- * chegar, `linkParticipantToUser` troca isso pelo id de verdade sem migração.
+ * Antes de existir conta (Fase 6), a identidade era só a do aparelho: quem
+ * cria a viagem entra com o `actor_id` do dispositivo. Depois do login,
+ * `linkParticipantToUser` troca esse valor pelo id de verdade do Supabase —
+ * por isso a comparação aqui é contra os DOIS (`actor_id` OU
+ * `linked_user_id`, gravado por `setLinkedUserId` assim que a sessão chega):
+ * sem isso, "você" para de ser reconhecido bem na hora em que a migração
+ * acontece.
  */
 export function findMe(db: Database, tripId: string): ParticipantRow | undefined {
   return db.get<ParticipantRow>(
     `SELECT p.* FROM participants p
-     JOIN device_state d ON d.id = 1 AND d.actor_id = p.user_id
+     JOIN device_state d ON d.id = 1 AND p.user_id IN (d.actor_id, d.linked_user_id)
      WHERE p.trip_id = ? AND p.deleted_at IS NULL AND p.merged_into IS NULL`,
     [tripId],
   );
@@ -222,6 +226,15 @@ export function findMe(db: Database, tripId: string): ParticipantRow | undefined
 
 export function localActorId(db: Database): string {
   return db.get<{ actor_id: string }>('SELECT actor_id FROM device_state WHERE id = 1')?.actor_id ?? '';
+}
+
+/**
+ * Grava o id de usuário de verdade assim que o login acontece — é o que
+ * permite `findMe` continuar reconhecendo "você" depois que
+ * `linkParticipantToUser` troca o `user_id` do fantasma pelo id do Supabase.
+ */
+export function setLinkedUserId(db: Database, userId: string): void {
+  db.run('UPDATE device_state SET linked_user_id = ? WHERE id = 1', [userId]);
 }
 
 /**

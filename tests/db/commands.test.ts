@@ -15,6 +15,7 @@ import {
   updateExpense,
 } from '@/commands/index';
 import {
+  findMe,
   lastExpenseCurrency,
   listExpenses,
   listShares,
@@ -22,6 +23,8 @@ import {
   listTripCurrencies,
   listTrips,
   loadLedger,
+  localActorId,
+  setLinkedUserId,
 } from '@/db/repositories';
 import { computeBalances, expenseInBase } from '@/domain/balance';
 import { sumCents } from '@/domain/money';
@@ -361,6 +364,29 @@ describe('convite e vinculação', () => {
       ok: false,
       error: { code: 'user_already_linked', participantId: ana },
     });
+  });
+
+  it('"você" continua reconhecível depois do login trocar o user_id do aparelho pelo de verdade', () => {
+    const db = openTestDb();
+    const ctx = makeContext();
+    const tripId = createTrip(db, ctx, { name: 'Chapada', baseCurrency: 'BRL' });
+
+    const voce = addParticipant(db, ctx, { tripId, displayName: 'Você', userId: localActorId(db) });
+    if (!voce.ok) throw new Error('participante não criado');
+
+    // Antes do login: "você" é reconhecido pelo actor_id do aparelho (§bug
+    // ao vivo — sem isto, a primeira sincronização falha com violação de
+    // chave estrangeira, porque o actor_id local não existe em auth.users).
+    expect(findMe(db, tripId)?.id).toBe(voce.value);
+
+    setLinkedUserId(db, 'user-de-verdade');
+    expect(linkParticipantToUser(db, ctx, { participantId: voce.value, userId: 'user-de-verdade' }).ok).toBe(
+      true,
+    );
+
+    // Depois: o user_id do participante já é o de verdade, não mais o do
+    // aparelho — findMe precisa achar pelos dois caminhos.
+    expect(findMe(db, tripId)?.id).toBe(voce.value);
   });
 });
 

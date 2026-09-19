@@ -19,6 +19,7 @@ describe('migrações', () => {
       '3_trip_currencies',
       '4_app_settings',
       '5_expense_time_place',
+      '6_linked_user_id',
     ]);
   });
 

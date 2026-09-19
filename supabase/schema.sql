@@ -5,8 +5,10 @@
 -- viagem (trip_members) e o convite (trip_invites).
 --
 -- Cole este arquivo inteiro no SQL Editor do Supabase (painel do projeto →
--- SQL Editor → New query) e rode uma vez. É seguro rodar de novo: todo
--- `create` usa `if not exists`.
+-- SQL Editor → New query). É seguro rodar de novo — tabela/índice/função
+-- usam `if not exists`/`or replace`, e cada política tem um `drop policy if
+-- exists` na frente (o Postgres não tem `create policy if not exists`; sem
+-- o drop, rodar duas vezes esbarra em "policy already exists").
 --
 -- O que ESTE arquivo NÃO faz — de propósito, é a próxima etapa:
 --   - Não grava nada quando uma despesa é criada no aparelho. Isso é o
@@ -214,8 +216,10 @@ alter table public.expense_shares   enable row level security;
 alter table public.settlements      enable row level security;
 alter table public.trip_subgroups   enable row level security;
 
+drop policy if exists "member reads trip" on public.trips;
 create policy "member reads trip" on public.trips
   for select using (public.is_trip_member(id));
+drop policy if exists "member writes trip" on public.trips;
 create policy "member writes trip" on public.trips
   for all using (public.is_trip_member(id)) with check (public.is_trip_member(id));
 -- Mesmo bootstrap de "become owner of an unowned trip" (mais abaixo), do
@@ -223,21 +227,26 @@ create policy "member writes trip" on public.trips
 -- tabela, então a viagem precisa existir aqui ANTES de alguém conseguir virar
 -- dona dela — o app sempre chama `push_trip` primeiro, depois entra em
 -- `trip_members`. Só vale enquanto a viagem não tem dono nenhum ainda.
+drop policy if exists "found an unowned trip" on public.trips;
 create policy "found an unowned trip" on public.trips
   for insert with check (not exists (select 1 from public.trip_members m where m.trip_id = id));
 
+drop policy if exists "member reads trip_currencies" on public.trip_currencies;
 create policy "member reads trip_currencies" on public.trip_currencies
   for select using (public.is_trip_member(trip_id));
+drop policy if exists "member writes trip_currencies" on public.trip_currencies;
 create policy "member writes trip_currencies" on public.trip_currencies
   for all using (public.is_trip_member(trip_id)) with check (public.is_trip_member(trip_id));
 -- Mesmo bootstrap de "found an unowned trip": `push_trip` grava a viagem e as
 -- moedas juntas, antes de o chamador virar dono em `trip_members` — só vale
 -- enquanto a viagem ainda não tem dono.
+drop policy if exists "seed currencies of an unowned trip" on public.trip_currencies;
 create policy "seed currencies of an unowned trip" on public.trip_currencies
   for insert with check (
     not exists (select 1 from public.trip_members m where m.trip_id = trip_currencies.trip_id)
   );
 
+drop policy if exists "member reads trip_members" on public.trip_members;
 create policy "member reads trip_members" on public.trip_members
   for select using (public.is_trip_member(trip_id));
 -- Entrar numa viagem QUE JÁ TEM DONO passa pela função de aceitar convite
@@ -250,6 +259,7 @@ create policy "member reads trip_members" on public.trip_members
 -- deixarem esse primeiro push acontecer. Esta política permite exatamente
 -- isso — tornar-se dono — e só isso: só serve enquanto NINGUÉM é dono ainda,
 -- então não dá para tomar posse de uma viagem que alguém já sincronizou.
+drop policy if exists "become owner of an unowned trip" on public.trip_members;
 create policy "become owner of an unowned trip" on public.trip_members
   for insert with check (
     user_id = auth.uid()
@@ -257,26 +267,34 @@ create policy "become owner of an unowned trip" on public.trip_members
     and not exists (select 1 from public.trip_members m where m.trip_id = trip_members.trip_id)
   );
 
+drop policy if exists "member reads trip_invites" on public.trip_invites;
 create policy "member reads trip_invites" on public.trip_invites
   for select using (public.is_trip_member(trip_id));
+drop policy if exists "member creates trip_invites" on public.trip_invites;
 create policy "member creates trip_invites" on public.trip_invites
   for insert with check (public.is_trip_member(trip_id));
 
+drop policy if exists "member reads participants" on public.participants;
 create policy "member reads participants" on public.participants
   for select using (public.is_trip_member(trip_id));
+drop policy if exists "member writes participants" on public.participants;
 create policy "member writes participants" on public.participants
   for all using (public.is_trip_member(trip_id)) with check (public.is_trip_member(trip_id));
 
+drop policy if exists "member reads expenses" on public.expenses;
 create policy "member reads expenses" on public.expenses
   for select using (public.is_trip_member(trip_id));
+drop policy if exists "member writes expenses" on public.expenses;
 create policy "member writes expenses" on public.expenses
   for all using (public.is_trip_member(trip_id)) with check (public.is_trip_member(trip_id));
 
+drop policy if exists "member reads expense_shares" on public.expense_shares;
 create policy "member reads expense_shares" on public.expense_shares
   for select using (
     exists (select 1 from public.expenses e
             where e.id = expense_id and public.is_trip_member(e.trip_id))
   );
+drop policy if exists "member writes expense_shares" on public.expense_shares;
 create policy "member writes expense_shares" on public.expense_shares
   for all using (
     exists (select 1 from public.expenses e
@@ -286,13 +304,17 @@ create policy "member writes expense_shares" on public.expense_shares
             where e.id = expense_id and public.is_trip_member(e.trip_id))
   );
 
+drop policy if exists "member reads settlements" on public.settlements;
 create policy "member reads settlements" on public.settlements
   for select using (public.is_trip_member(trip_id));
+drop policy if exists "member writes settlements" on public.settlements;
 create policy "member writes settlements" on public.settlements
   for all using (public.is_trip_member(trip_id)) with check (public.is_trip_member(trip_id));
 
+drop policy if exists "member reads trip_subgroups" on public.trip_subgroups;
 create policy "member reads trip_subgroups" on public.trip_subgroups
   for select using (public.is_trip_member(trip_id));
+drop policy if exists "member writes trip_subgroups" on public.trip_subgroups;
 create policy "member writes trip_subgroups" on public.trip_subgroups
   for all using (public.is_trip_member(trip_id)) with check (public.is_trip_member(trip_id));
 

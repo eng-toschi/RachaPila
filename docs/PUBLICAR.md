@@ -105,10 +105,19 @@ Apple mexeu nessa regra mais de uma vez.
 
 ```bash
 npm install -g eas-cli
-eas login            # conta Expo, não a Apple
-eas init             # vincula o projeto e grava o projectId no app.json
+eas login
+eas init
 eas build --profile production --platform ios
 ```
+
+`eas login` é a conta **Expo**, não a Apple — são coisas diferentes e é a
+Expo que vem primeiro. `eas init` vincula o projeto e grava o `projectId` no
+`app.json`. Quando ele perguntar de quem é o projeto, escolha a conta
+**pessoal**; uma conta de time só faz sentido havendo mais gente publicando.
+
+> Comandos aqui vão sem comentário na mesma linha de propósito: colados no
+> terminal, o `#` e o que vem depois chegam na CLI como argumento e o comando
+> falha com "Unexpected arguments".
 
 No primeiro build a CLI pede as credenciais Apple. **É aqui que se erra o
 time:** ela lista todos os times do seu Apple ID e o padrão pode ser o da

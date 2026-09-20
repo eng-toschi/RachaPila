@@ -3,7 +3,7 @@
     "name": "RachaPila",
     "slug": "rachapila",
     "scheme": "rachapila",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -11,10 +11,8 @@
     "ios": {
       "bundleIdentifier": "app.rachapila.mobile",
       "supportsTablet": false,
-      "infoPlist": {
-        "NSCameraUsageDescription": "Para fotografar recibos e ler o QR do convite.",
-        "NSPhotoLibraryUsageDescription": "Para anexar a foto de um recibo a uma despesa.",
-        "NSLocationWhenInUseUsageDescription": "Para registrar onde cada despesa aconteceu. A localização é usada só no momento do lançamento e fica gravada apenas neste aparelho."
+      "config": {
+        "usesNonExemptEncryption": false
       }
     },
     "android": {
@@ -25,7 +23,6 @@
         "backgroundColor": "#6D4AFF"
       },
       "permissions": [
-        "CAMERA",
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION"
       ]

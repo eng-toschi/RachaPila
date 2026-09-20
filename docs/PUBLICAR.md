@@ -1,0 +1,154 @@
+# Publicar: conta Apple, conta Google e a esteira de build
+
+O que está aqui é a parte de *contas e configuração*. Os textos da listagem
+estão em `LOJA.md`.
+
+---
+
+## 1. A conta Apple: o nó a desatar primeiro
+
+A regra que importa: **um Apple ID pode ter uma única inscrição própria no
+Apple Developer Program, mas pode ser membro de quantos times alheios
+quiser.** São coisas separadas. Ser Admin do time da consultoria não consome
+a sua inscrição.
+
+Então a pergunta não é "posso ter duas contas", é **qual o seu papel no time
+da consultoria**. Veja em developer.apple.com → Account → People (ou no
+seletor de time no topo da página):
+
+| Seu papel lá | O que fazer |
+|---|---|
+| **Member** ou **Admin** | Dá para inscrever o *mesmo* Apple ID como Individual. Depois de inscrito, aparece um seletor de time no topo, e você alterna entre "Consultoria X" e o seu. |
+| **Account Holder** | Esse Apple ID já está gasto. Precisa de um Apple ID novo. |
+
+**Independente do papel, use um Apple ID novo se o atual for um e-mail da
+consultoria** (`voce@consultoria.com.br`). No dia que o contrato acabar você
+perde o e-mail — e com ele o acesso de recuperação da conta que publica o seu
+app. Não vale o risco.
+
+Se for criar um Apple ID novo, o endereço natural é
+`contato@rachapila.com.br` — que de qualquer forma precisa passar a receber
+e-mail (a Apple testa o canal de suporte).
+
+### Individual ou Organization?
+
+| | Individual | Organization |
+|---|---|---|
+| Custo | US$ 99/ano | US$ 99/ano |
+| Exige | só você | CNPJ + número **D-U-N-S** |
+| Nome público na loja | **seu nome civil** | o nome da empresa |
+| Prazo | costuma sair em 24–48h | o D-U-N-S sozinho leva de 5 a 15 dias úteis |
+
+Você disse que quer velocidade: **Individual**. E isso não é porta sem volta
+— a Apple permite *App Transfer* de um app já publicado para uma conta
+Organization depois, sem perder avaliações nem usuários. O RachaPila não usa
+nada do que bloqueia transferência (iCloud, Apple Pay, Sign in with Apple).
+
+O único preço real do Individual é o seu nome civil aparecer como vendedor
+na ficha do app. Se isso incomodar, aí sim vale esperar o D-U-N-S.
+
+### Duas burocracias que você *não* precisa enfrentar
+
+- **Contratos de app pago / dados bancários / formulário fiscal.** O
+  RachaPila é gratuito e não tem compra dentro do app. O contrato de apps
+  gratuitos é aceito com um clique e pronto — nada de conta bancária, nada de
+  W-8BEN.
+- **Sign in with Apple.** A exigência vale para quem oferece login social de
+  terceiros (Google, Facebook). O nosso é link mágico por e-mail próprio.
+
+### Uma que talvez você precise
+
+Desde 2025 a Apple exige declaração de **trader status** (DSA) para
+distribuir na União Europeia, e quem declara "trader" tem endereço e telefone
+exibidos publicamente na ficha do app. Como pessoa física, isso significa
+publicar seu endereço.
+
+Saída: em App Store Connect → o app → *Pricing and Availability*, desmarque
+os países da UE e publique no Brasil e no resto do mundo. Dá para incluir a
+UE depois, quando houver CNPJ. **Confirme a redação vigente na hora** — a
+Apple mexeu nessa regra mais de uma vez.
+
+---
+
+## 2. Ordem das coisas (Apple)
+
+1. Resolver o Apple ID conforme a tabela acima e ativar 2FA nele.
+2. Inscrever-se em developer.apple.com/programs — Individual, US$ 99.
+   Costuma cair em 24–48h; às vezes na hora.
+3. Aceitar o contrato de apps gratuitos em App Store Connect → Business.
+4. Criar o registro do app em App Store Connect → Apps → **+**:
+   - Plataforma: iOS
+   - Nome: `RachaPila`
+   - Idioma principal: Português (Brasil)
+   - Bundle ID: **`app.rachapila.mobile`** (tem que bater com o `app.json`)
+   - SKU: `rachapila-ios` (só para você, nunca aparece)
+5. Preencher a ficha com os textos de `LOJA.md`, os rótulos de privacidade e
+   as URLs de suporte e privacidade (depende de hospedar a pasta `web/`).
+
+> **O Bundle ID é permanente.** Depois do primeiro envio não muda mais. O
+> nosso é `app.rachapila.mobile`, já gravado no `app.json` nas duas
+> plataformas. Se quiser outro, é agora.
+
+---
+
+## 3. A esteira de build (EAS)
+
+```bash
+npm install -g eas-cli
+eas login            # conta Expo, não a Apple
+eas init             # vincula o projeto e grava o projectId no app.json
+eas build --profile production --platform ios
+```
+
+No primeiro build a CLI pede as credenciais Apple. **É aqui que se erra o
+time:** ela lista todos os times do seu Apple ID e o padrão pode ser o da
+consultoria. Escolha o seu. Se errar, conserta com:
+
+```bash
+eas credentials          # iOS → selecione o perfil → remova e refaça
+```
+
+A partir daí a EAS cria e guarda certificado e provisioning profile sozinha.
+
+Para enviar:
+
+```bash
+eas submit --profile production --platform ios --latest
+```
+
+Para não digitar Apple ID e senha a cada envio, gere uma chave de API em App
+Store Connect → Users and Access → Integrations → App Store Connect API
+(papel **App Manager**), **dentro do seu time**, e registre com
+`eas credentials`. A chave é por time — uma da consultoria não serve.
+
+O `eas.json` já está com `appVersionSource: "remote"` e `autoIncrement` no
+perfil de produção: o número de build sobe sozinho a cada envio, que é a
+causa mais comum de envio recusado.
+
+---
+
+## 4. Android, em paralelo
+
+Faça os dois ao mesmo tempo; um não espera o outro.
+
+- Google Play Console, US$ 25, pagamento único.
+- **Conta pessoal criada hoje precisa de 12 testadores por 14 dias seguidos
+  em teste fechado antes de liberar produção.** Esse relógio só começa depois
+  do cadastro aprovado, então crie a conta *hoje* mesmo que o app demore.
+- Conta **organização** (também com D-U-N-S) é dispensada dessa regra. Se
+  você tem CNPJ, os ~10 dias do D-U-N-S podem sair mais baratos que os 14
+  dias de teste fechado — e ainda resolvem o nome público na App Store.
+
+```bash
+eas build --profile production --platform android
+eas submit --profile production --platform android --latest
+```
+
+---
+
+## 5. O que ainda trava o envio
+
+- [ ] Hospedar `web/` (Cloudflare Pages resolve arrastando a pasta) — as URLs
+      de suporte e privacidade são campos obrigatórios.
+- [ ] `contato@rachapila.com.br` receber de verdade.
+- [ ] Capturas de tela 6,7"/6,9" (1290×2796) — ver `LOJA.md`.

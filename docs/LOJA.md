@@ -98,10 +98,10 @@ exclusão (pode, dentro do app).
 - [ ] **Fazer `contato@rachapila.com.br` receber de verdade.** As duas páginas
       publicam esse endereço, a Apple costuma testar o canal de suporte, e a
       LGPD exige que ele funcione. Hoje o domínio só envia (Resend), não recebe.
-- [ ] **Conta Apple Developer** (US$ 99/ano) — fila de 1 a 2 dias.
-- [ ] **Conta Google Play Console** (US$ 25, uma vez) — atenção ao teste
-      fechado de 14 dias com 12 pessoas exigido de contas pessoais; esse
-      relógio só começa depois do cadastro.
+- [ ] **Contas de desenvolvedor** (Apple US$ 99/ano, Google US$ 25 uma vez).
+      O caminho completo — qual Apple ID usar quando o atual está preso ao
+      time de um cliente, Individual x Organization, e a esteira da EAS —
+      está em `PUBLICAR.md`.
 - [ ] **Capturas de tela** — a Apple pede pelo menos as de 6,7"/6,9"
       (1290×2796). Dá para tirar do simulador do iPhone ou do aparelho.
       Boas candidatas: lista de despesas de uma viagem cheia, a divisão de uma
@@ -121,6 +121,9 @@ exclusão (pode, dentro do app).
   se encaixa. É o ponto a reler no texto vigente da diretriz antes de enviar.
 - **Permissão de localização** — o texto exibido já explica o uso e o app
   funciona se a pessoa negar, que é o que a Apple verifica.
+- **Permissão declarada sem uso** — o `app.json` pedia câmera e galeria, que
+  o app nunca abre. Foram removidas. Vale reconferir a cada dependência nova:
+  é reprovação fácil de evitar e cara de levar.
 - **App incompleto** — evitar enviar com funcionalidade obviamente pela
   metade. A sincronização automática já entrou; notificação push fica para
   depois do lançamento e não é exigência.

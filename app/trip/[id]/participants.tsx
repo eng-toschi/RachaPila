@@ -260,50 +260,42 @@ export default function ParticipantsScreen() {
                       <Text variant="overline" tone="muted">
                         Nome
                       </Text>
-                      <TextInput
-                        value={nameDraft}
-                        onChangeText={(text) => {
-                          setNameDraft(text);
-                          setEditError(undefined);
-                        }}
-                        placeholder="Como essa pessoa aparece na viagem"
-                        placeholderTextColor={t.textFaint}
-                        accessibilityLabel={`Nome de ${person.name}`}
-                        style={{
-                          minHeight: MIN_TOUCH,
-                          fontSize: 15,
-                          color: t.text,
-                          backgroundColor: t.surface,
-                          borderRadius: RADIUS.md,
-                          paddingHorizontal: SPACING.md,
-                        }}
-                      />
+                      <View style={field(t.surface)}>
+                        <TextInput
+                          value={nameDraft}
+                          onChangeText={(text) => {
+                            setNameDraft(text);
+                            setEditError(undefined);
+                          }}
+                          placeholder="Como essa pessoa aparece na viagem"
+                          placeholderTextColor={t.textFaint}
+                          accessibilityLabel={`Nome de ${person.name}`}
+                          numberOfLines={1}
+                          style={{ fontSize: 15, color: t.text, padding: 0 }}
+                        />
+                      </View>
                     </View>
 
                     <View style={{ gap: SPACING.xs }}>
                       <Text variant="overline" tone="muted">
                         Chave Pix
                       </Text>
-                      <TextInput
-                        value={pixDraft}
-                        onChangeText={(text) => {
-                          setPixDraft(text);
-                          setEditError(undefined);
-                        }}
-                        placeholder="CPF, e-mail, telefone ou chave aleatória"
-                        placeholderTextColor={t.textFaint}
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                        accessibilityLabel={`Chave Pix de ${person.name}`}
-                        style={{
-                          minHeight: MIN_TOUCH,
-                          fontSize: 15,
-                          color: t.text,
-                          backgroundColor: t.surface,
-                          borderRadius: RADIUS.md,
-                          paddingHorizontal: SPACING.md,
-                        }}
-                      />
+                      <View style={field(t.surface)}>
+                        <TextInput
+                          value={pixDraft}
+                          onChangeText={(text) => {
+                            setPixDraft(text);
+                            setEditError(undefined);
+                          }}
+                          placeholder="CPF, e-mail, telefone ou chave aleatória"
+                          placeholderTextColor={t.textFaint}
+                          autoCapitalize="none"
+                          autoCorrect={false}
+                          accessibilityLabel={`Chave Pix de ${person.name}`}
+                          numberOfLines={1}
+                          style={{ fontSize: 15, color: t.text, padding: 0 }}
+                        />
+                      </View>
                       <Text variant="caption" tone="faint">
                         {person.pixKey === null
                           ? 'Serve para o grupo te pagar no fim da viagem. Dá para deixar em branco.'
@@ -373,18 +365,24 @@ export default function ParticipantsScreen() {
           })}
         </Card>
 
-        <Card>
+        <Card style={{ paddingVertical: SPACING.md }}>
           <Row>
-            <TextInput
-              value={draft}
-              onChangeText={setDraft}
-              onSubmitEditing={add}
-              returnKeyType="done"
-              placeholder="Adicionar alguém pelo nome"
-              placeholderTextColor={t.textFaint}
-              accessibilityLabel="Nome do participante"
-              style={{ flex: 1, fontSize: 15.5, color: t.text, minHeight: MIN_TOUCH }}
-            />
+            {/* Altura no contêiner e `padding: 0` no campo: confiar no
+                `minHeight` do próprio TextInput deixava o texto descer até
+                encostar na borda do cartão, meio cortado. */}
+            <View style={{ flex: 1, height: MIN_TOUCH, justifyContent: 'center' }}>
+              <TextInput
+                value={draft}
+                onChangeText={setDraft}
+                onSubmitEditing={add}
+                returnKeyType="done"
+                placeholder="Adicionar alguém pelo nome"
+                placeholderTextColor={t.textFaint}
+                accessibilityLabel="Nome do participante"
+                numberOfLines={1}
+                style={{ fontSize: 15.5, color: t.text, padding: 0 }}
+              />
+            </View>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Adicionar participante"
@@ -438,4 +436,19 @@ export default function ParticipantsScreen() {
       </View>
     </View>
   );
+}
+
+/**
+ * Caixa de um campo de texto: a altura mora aqui, e o TextInput vai sem
+ * padding nenhum dentro dela. É o que garante o texto no meio da caixa nas
+ * duas plataformas.
+ */
+function field(background: string) {
+  return {
+    height: MIN_TOUCH,
+    justifyContent: 'center' as const,
+    backgroundColor: background,
+    borderRadius: RADIUS.md,
+    paddingHorizontal: SPACING.md,
+  };
 }

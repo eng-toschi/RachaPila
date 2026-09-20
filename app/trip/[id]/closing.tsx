@@ -323,7 +323,13 @@ export default function ClosingScreen() {
               ? chosen.cents
               : convertCents(chosen.cents, chosen.currency, data.baseCurrency, chosen.ratePpm);
           const residueCents = backInBase - transfer.cents;
-          const canPix = chosen.currency === 'BRL' && data.baseCurrency === 'BRL' && to?.pixKey != null;
+          // O copia e cola só existe em real: o payload do Pix carrega o valor,
+          // e valor em euro num código Pix seria mentira.
+          const brlPayment = chosen.currency === 'BRL' && data.baseCurrency === 'BRL';
+          const canPix = brlPayment && to?.pixKey != null;
+          // Sem chave cadastrada o botão sumia calado, e some justamente de
+          // quem esperava encontrá-lo — daí dizer de quem falta a chave.
+          const missingPix = brlPayment && to?.pixKey == null;
 
           return (
             <Card key={`${transfer.fromId}-${transfer.toId}`}>
@@ -376,6 +382,31 @@ export default function ClosingScreen() {
                     <IconCopy size={15} color={t.onInverse} />
                     <Text variant="label" tone="inverse">
                       Pix copia e cola
+                    </Text>
+                  </Pressable>
+                ) : null}
+
+                {missingPix ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Cadastrar chave Pix de ${to?.name ?? 'quem recebe'}`}
+                    onPress={() => { router.push(`/trip/${tripId}/participants`); }}
+                    style={{
+                      minHeight: 44,
+                      borderRadius: RADIUS.pill,
+                      backgroundColor: t.surfaceAlt,
+                      paddingHorizontal: SPACING.md,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: SPACING.sm,
+                    }}
+                  >
+                    <Text variant="caption" tone="muted">
+                      {to?.name ?? 'Quem recebe'} ainda não tem chave Pix ·{' '}
+                    </Text>
+                    <Text variant="label" tone="accent">
+                      cadastrar
                     </Text>
                   </Pressable>
                 ) : null}

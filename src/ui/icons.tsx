@@ -203,3 +203,11 @@ export const CATEGORY_ICONS: Readonly<Record<string, (p: IconProps) => React.JSX
     </Svg>
   ),
 };
+
+/** Lápis: "dá para editar isto". Usado ao lado de coisas que parecem só título. */
+export const IconEdit = ({ size, color }: IconProps) => (
+  <Svg {...base(size)}>
+    <Path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4z" stroke={color} strokeWidth={STROKE} strokeLinejoin="round" />
+    <Path d="M14.5 5.5 18.5 9.5" stroke={color} strokeWidth={STROKE} strokeLinecap="round" />
+  </Svg>
+);

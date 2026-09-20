@@ -30,6 +30,7 @@ export interface CommandContext {
 
 export type CommandError =
   | { readonly code: 'trip_not_found' }
+  | { readonly code: 'empty_name' }
   | { readonly code: 'expense_not_found' }
   | { readonly code: 'settlement_not_found' }
   | { readonly code: 'participant_not_found'; readonly participantId: string }
@@ -127,6 +128,42 @@ export function createTrip(db: Database, ctx: CommandContext, input: CreateTripI
   });
 
   return id;
+}
+
+/**
+ * Troca o nome da viagem.
+ *
+ * Nome errado é o tipo de coisa que se descobre depois da terceira despesa
+ * lançada, e refazer a viagem inteira por causa disso não é opção. Nome vazio
+ * é recusado: a lista de viagens fica ilegível com um cartão sem título.
+ */
+export function renameTrip(
+  db: Database,
+  ctx: CommandContext,
+  tripId: string,
+  name: string,
+): Result<void, CommandError> {
+  if (getTrip(db, tripId) === undefined) return err({ code: 'trip_not_found' });
+
+  const trimmed = name.trim();
+  if (trimmed === '') return err({ code: 'empty_name' });
+
+  db.transaction(() => {
+    db.run('UPDATE trips SET name = ?, lamport = lamport + 1, updated_at = ? WHERE id = ?', [
+      trimmed,
+      ctx.now(),
+      tripId,
+    ]);
+    record(db, ctx, {
+      tripId,
+      entity: 'trip',
+      entityId: tripId,
+      kind: 'upsert',
+      payload: rowOf(db, 'trips', tripId),
+    });
+  });
+
+  return ok(undefined);
 }
 
 /**

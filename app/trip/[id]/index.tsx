@@ -1,17 +1,18 @@
 import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, View, type DimensionValue } from 'react-native';
+import { Pressable, ScrollView, TextInput, View, type DimensionValue } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { computeBalances, expenseInBase, totalSpent } from '@/domain/balance';
 import { formatMoney } from '@/domain/money';
 import { findMe, getTrip, listExpenses, listParticipants, listShares, loadLedger } from '@/db/repositories';
-import { useQuery } from '@/state/database';
+import { renameTrip } from '@/commands';
+import { useMutate, useQuery } from '@/state/database';
 import { dayLabel, timeLabel } from '@/state/format';
 import { useSync } from '@/state/sync';
 import { Avatar, Badge, Button, Card, EmptyState, MoneyText, Row, SegmentedControl, Text } from '@/ui/components';
-import { CATEGORY_ICONS, IconBack, IconPlus, IconUsers } from '@/ui/icons';
+import { CATEGORY_ICONS, IconBack, IconEdit, IconPlus, IconUsers } from '@/ui/icons';
 import { useTheme, useThemeControl } from '@/ui/theme';
-import { RADIUS, SPACING, categoryColor, categoryTint } from '@/ui/tokens';
+import { MIN_TOUCH, RADIUS, SPACING, categoryColor, categoryTint } from '@/ui/tokens';
 
 interface ExpenseCard {
   readonly id: string;
@@ -43,7 +44,17 @@ export default function TripScreen() {
   const params = useLocalSearchParams();
   const tripId = typeof params.id === 'string' ? params.id : '';
   const [tab, setTab] = useState<'expenses' | 'balances'>('expenses');
+  const [renaming, setRenaming] = useState(false);
+  const [nameDraft, setNameDraft] = useState('');
+  const mutate = useMutate();
   const { syncNow, status: syncStatus } = useSync();
+
+  /** Nome em branco não salva nem reclama: só fecha nada e mantém o que havia. */
+  const saveName = (): void => {
+    if (nameDraft.trim() === '') return;
+    mutate((db, ctx) => renameTrip(db, ctx, tripId, nameDraft));
+    setRenaming(false);
+  };
 
   // Abrir a viagem é o momento em que estar desatualizado incomoda — não
   // adianta o dado chegar depois que a pessoa já olhou o saldo e saiu.
@@ -130,7 +141,23 @@ export default function TripScreen() {
           <Pressable accessibilityRole="button" accessibilityLabel="Voltar" onPress={() => { router.back(); }} hitSlop={12}>
             <IconBack size={24} color={t.text} />
           </Pressable>
-          <Text variant="title">{view.name}</Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Renomear viagem ${view.name}`}
+            onPress={() => {
+              setNameDraft(view.name);
+              setRenaming(true);
+            }}
+            hitSlop={10}
+            style={{ flexShrink: 1 }}
+          >
+            <Row gap={SPACING.xs}>
+              <Text variant="title" numberOfLines={1}>
+                {view.name}
+              </Text>
+              <IconEdit size={14} color={t.textFaint} />
+            </Row>
+          </Pressable>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Participantes"
@@ -140,6 +167,45 @@ export default function TripScreen() {
             <IconUsers size={24} color={t.text} />
           </Pressable>
         </Row>
+
+        {renaming ? (
+          <Card style={{ gap: SPACING.md }}>
+            <Text variant="overline" tone="muted">
+              Nome da viagem
+            </Text>
+            <View
+              style={{
+                height: MIN_TOUCH,
+                justifyContent: 'center',
+                backgroundColor: t.surfaceAlt,
+                borderRadius: RADIUS.md,
+                paddingHorizontal: SPACING.md,
+              }}
+            >
+              <TextInput
+                value={nameDraft}
+                onChangeText={setNameDraft}
+                onSubmitEditing={saveName}
+                returnKeyType="done"
+                autoFocus
+                selectTextOnFocus
+                placeholder="Para onde vocês vão?"
+                placeholderTextColor={t.textFaint}
+                accessibilityLabel="Nome da viagem"
+                style={{ fontSize: 16, color: t.text, padding: 0 }}
+              />
+            </View>
+            <Row gap={SPACING.sm}>
+              <Button label="Salvar" onPress={saveName} style={{ flex: 1 }} />
+              <Button
+                label="Cancelar"
+                variant="secondary"
+                onPress={() => { setRenaming(false); }}
+                style={{ flex: 1 }}
+              />
+            </Row>
+          </Card>
+        ) : null}
 
         {/* Só aparece quando falha. Enquanto sincroniza, ficar piscando um
             "sincronizando…" a cada despesa lançada seria ruído — mas ficar

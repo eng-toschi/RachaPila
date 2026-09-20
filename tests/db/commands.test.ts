@@ -9,6 +9,7 @@ import {
   deleteTrip,
   linkParticipantToUser,
   recordSettlement,
+  renameTrip,
   restoreExpense,
   restoreTrip,
   setTripCurrencies,
@@ -447,6 +448,31 @@ describe('encerrar viagem', () => {
   it('recusa arquivar viagem que não existe', () => {
     const { db, ctx } = viagemComQuatro();
     expect(archiveTrip(db, ctx, 'nao-existe')).toEqual({ ok: false, error: { code: 'trip_not_found' } });
+  });
+});
+
+describe('renomear viagem', () => {
+  it('troca o nome e enfileira a operação para sincronizar', () => {
+    const { db, ctx, tripId } = viagemComQuatro();
+    const before = pendingOps(db).length;
+
+    expect(renameTrip(db, ctx, tripId, '  Chile 2026  ').ok).toBe(true);
+
+    expect(listTrips(db)[0]?.name).toBe('Chile 2026');
+    expect(pendingOps(db).length).toBe(before + 1);
+  });
+
+  it('recusa nome em branco em vez de deixar a viagem sem título', () => {
+    const { db, ctx, tripId } = viagemComQuatro();
+    const nameBefore = listTrips(db)[0]?.name;
+
+    expect(renameTrip(db, ctx, tripId, '   ')).toEqual({ ok: false, error: { code: 'empty_name' } });
+    expect(listTrips(db)[0]?.name).toBe(nameBefore);
+  });
+
+  it('recusa renomear viagem que não existe', () => {
+    const { db, ctx } = viagemComQuatro();
+    expect(renameTrip(db, ctx, 'nao-existe', 'Chile')).toEqual({ ok: false, error: { code: 'trip_not_found' } });
   });
 });
 

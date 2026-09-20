@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, Share, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Share, TextInput, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { addParticipant, updateParticipant } from '@/commands';
-import { findMe, listParticipants } from '@/db/repositories';
+import { findMe, listParticipants, participantHasExpenses } from '@/db/repositories';
 import { maskPixKey, parsePixKey } from '@/domain/pix';
 import { createInvite } from '@/services/invites';
 import { useAuth } from '@/state/auth';
@@ -39,8 +39,39 @@ export default function ParticipantsScreen() {
       isMe: findMe(database, tripId)?.id === p.id,
       linked: p.user_id !== null,
       archived: p.archived_at !== null,
+      hasExpenses: participantHasExpenses(database, p.id),
     })),
   );
+
+  /**
+   * "Excluir" aqui é arquivar, nunca apagar de verdade (§10 — tombstone):
+   * despesa já lançada com essa pessoa não pode sumir, ou o fechamento de
+   * quem ficou quebra. Quem nunca lançou nada some da lista sem ressalva;
+   * quem já tem histórico precisa saber que ele permanece.
+   */
+  const toggleArchive = (participantId: string, name: string, archived: boolean, hasExpenses: boolean): void => {
+    if (archived) {
+      mutate((db, ctx) => updateParticipant(db, ctx, { participantId, archived: false }));
+      return;
+    }
+
+    Alert.alert(
+      `Remover ${name} da viagem?`,
+      hasExpenses
+        ? `${name} já aparece em despesas lançadas — isso continua valendo para o saldo e o histórico. Só deixa de aparecer para novas despesas. Dá para trazer de volta depois.`
+        : `${name} ainda não tem despesa nenhuma. Dá para trazer de volta depois, se precisar.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Remover',
+          style: 'destructive',
+          onPress: () => {
+            mutate((db, ctx) => updateParticipant(db, ctx, { participantId, archived: true }));
+          },
+        },
+      ],
+    );
+  };
 
   const invite = async (participantId?: string): Promise<void> => {
     setInvitingId(participantId ?? 'trip');
@@ -126,9 +157,10 @@ export default function ParticipantsScreen() {
                 <Row>
                   <Avatar name={person.name} seed={person.seed} size={38} />
                   <View style={{ flex: 1, gap: 2 }}>
-                    <Text variant="body" strong={person.isMe}>
+                    <Text variant="body" strong={person.isMe} tone={person.archived ? 'faint' : 'default'}>
                       {person.name}
                       {person.isMe ? ' · você' : ''}
+                      {person.archived ? ' · removido' : ''}
                     </Text>
                     <Text variant="caption" tone="muted">
                       {person.pixKey === null
@@ -152,18 +184,32 @@ export default function ParticipantsScreen() {
                   </Pressable>
                 </Row>
 
-                {session !== null && !person.linked && !person.isMe ? (
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={`Convidar ${person.name}`}
-                    onPress={() => { void invite(person.id); }}
-                    disabled={invitingId !== undefined}
-                  >
-                    <Text variant="label" tone="accent">
-                      {invitingId === person.id ? 'Gerando convite…' : `Convidar ${person.name}`}
-                    </Text>
-                  </Pressable>
-                ) : null}
+                {person.isMe ? null : (
+                  <Row gap={SPACING.lg}>
+                    {session !== null && !person.linked && !person.archived ? (
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={`Convidar ${person.name}`}
+                        onPress={() => { void invite(person.id); }}
+                        disabled={invitingId !== undefined}
+                      >
+                        <Text variant="label" tone="accent">
+                          {invitingId === person.id ? 'Gerando convite…' : `Convidar ${person.name}`}
+                        </Text>
+                      </Pressable>
+                    ) : null}
+
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={person.archived ? `Trazer ${person.name} de volta` : `Remover ${person.name}`}
+                      onPress={() => { toggleArchive(person.id, person.name, person.archived, person.hasExpenses); }}
+                    >
+                      <Text variant="label" tone={person.archived ? 'muted' : 'negative'}>
+                        {person.archived ? 'Trazer de volta' : 'Remover'}
+                      </Text>
+                    </Pressable>
+                  </Row>
+                )}
 
                 {editing === person.id ? (
                   <View style={{ gap: SPACING.sm }}>

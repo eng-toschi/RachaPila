@@ -95,6 +95,24 @@ export function listParticipants(db: Database, tripId: string): ParticipantRow[]
   );
 }
 
+/**
+ * Se o participante já apareceu em alguma despesa (pagou ou tomou parte).
+ *
+ * Decide o tom do aviso na hora de arquivar: quem nunca lançou nada some sem
+ * ressalva nenhuma; quem já tem histórico precisa saber que ele fica —
+ * arquivar nunca apaga despesa (§10, tombstone).
+ */
+export function participantHasExpenses(db: Database, participantId: string): boolean {
+  return (
+    db.get<{ id: string }>('SELECT id FROM expenses WHERE paid_by = ? AND deleted_at IS NULL LIMIT 1', [
+      participantId,
+    ]) !== undefined ||
+    db.get<{ expense_id: string }>('SELECT expense_id FROM expense_shares WHERE participant_id = ? LIMIT 1', [
+      participantId,
+    ]) !== undefined
+  );
+}
+
 /** Só quem pode entrar em novas divisões (arquivado sai; histórico permanece). */
 export function listActiveParticipants(db: Database, tripId: string): ParticipantRow[] {
   return listParticipants(db, tripId).filter((p) => p.archived_at === null);

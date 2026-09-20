@@ -8,8 +8,8 @@ import { maskPixKey, parsePixKey } from '@/domain/pix';
 import { createInvite } from '@/services/invites';
 import { useAuth } from '@/state/auth';
 import { useDatabase, useMutate, useQuery } from '@/state/database';
-import { Avatar, Button, Card, Divider, Row, Text } from '@/ui/components';
-import { IconBack, IconCheck, IconInfo, IconPlus } from '@/ui/icons';
+import { Avatar, Badge, Button, Card, Divider, Row, Text } from '@/ui/components';
+import { IconBack, IconCheck, IconChevron, IconInfo, IconPlus } from '@/ui/icons';
 import { useTheme } from '@/ui/theme';
 import { MIN_TOUCH, RADIUS, SPACING } from '@/ui/tokens';
 
@@ -24,8 +24,9 @@ export default function ParticipantsScreen() {
 
   const [draft, setDraft] = useState('');
   const [editing, setEditing] = useState<string | undefined>(undefined);
+  const [nameDraft, setNameDraft] = useState('');
   const [pixDraft, setPixDraft] = useState('');
-  const [pixError, setPixError] = useState<string | undefined>(undefined);
+  const [editError, setEditError] = useState<string | undefined>(undefined);
   const [invitingId, setInvitingId] = useState<string | undefined>(undefined);
   const [inviteError, setInviteError] = useState<string | undefined>(undefined);
 
@@ -67,6 +68,7 @@ export default function ParticipantsScreen() {
           style: 'destructive',
           onPress: () => {
             mutate((db, ctx) => updateParticipant(db, ctx, { participantId, archived: true }));
+            closeEditor();
           },
         },
       ],
@@ -102,10 +104,61 @@ export default function ParticipantsScreen() {
     setDraft('');
   };
 
-  const savePix = (participantId: string): void => {
-    const parsed = parsePixKey(pixDraft);
+  const closeEditor = (): void => {
+    setEditing(undefined);
+    setNameDraft('');
+    setPixDraft('');
+    setEditError(undefined);
+  };
+
+  /**
+   * Uma porta de entrada por linha. Antes havia três ações soltas dentro do
+   * card ("Trocar", "Convidar", "Remover") sem hierarquia entre elas, e o nome
+   * — o dado mais óbvio de se querer corrigir — não era editável em lugar
+   * nenhum. Agora a linha inteira abre um editor, e é lá dentro que tudo mora.
+   */
+  const openEditor = (participantId: string, name: string, pixKey: string | null): void => {
+    if (editing === participantId) {
+      closeEditor();
+      return;
+    }
+    setEditing(participantId);
+    setNameDraft(name);
+    setPixDraft(pixKey ?? '');
+    setEditError(undefined);
+  };
+
+  /**
+   * Salva nome e chave Pix de uma vez: são os dois campos do editor, e separar
+   * em dois botões faria a pessoa achar que salvou quando salvou metade.
+   * Campo de Pix vazio significa apagar a chave — é como se tira uma chave
+   * cadastrada por engano, e não há outro caminho para isso na tela.
+   */
+  const save = (participantId: string): void => {
+    const name = nameDraft.trim();
+    if (name === '') {
+      setEditError('O nome não pode ficar em branco.');
+      return;
+    }
+
+    const pix = pixDraft.trim();
+    if (pix === '') {
+      mutate((db, ctx) =>
+        updateParticipant(db, ctx, {
+          participantId,
+          displayName: name,
+          pixKey: null,
+          pixKeyKind: null,
+          pixName: null,
+        }),
+      );
+      closeEditor();
+      return;
+    }
+
+    const parsed = parsePixKey(pix);
     if (!parsed.ok) {
-      setPixError(
+      setEditError(
         parsed.error.code === 'invalid_cpf'
           ? 'CPF inválido — confira os dígitos.'
           : parsed.error.code === 'invalid_cnpj'
@@ -114,18 +167,17 @@ export default function ParticipantsScreen() {
       );
       return;
     }
-    const name = people.find((p) => p.id === participantId)?.name ?? '';
+
     mutate((db, ctx) =>
       updateParticipant(db, ctx, {
         participantId,
+        displayName: name,
         pixKey: parsed.value.value,
         pixKeyKind: parsed.value.kind,
         pixName: name,
       }),
     );
-    setEditing(undefined);
-    setPixDraft('');
-    setPixError(undefined);
+    closeEditor();
   };
 
   return (
@@ -150,109 +202,175 @@ export default function ParticipantsScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <Card padded={false}>
-          {people.map((person, index) => (
-            <View key={person.id}>
-              {index === 0 ? null : <Divider />}
-              <View style={{ paddingHorizontal: SPACING.lg, paddingVertical: SPACING.md, gap: SPACING.sm }}>
-                <Row>
-                  <Avatar name={person.name} seed={person.seed} size={38} />
-                  <View style={{ flex: 1, gap: 2 }}>
-                    <Text variant="body" strong={person.isMe} tone={person.archived ? 'faint' : 'default'}>
-                      {person.name}
-                      {person.isMe ? ' · você' : ''}
-                      {person.archived ? ' · removido' : ''}
-                    </Text>
-                    <Text variant="caption" tone="muted">
-                      {person.pixKey === null
-                        ? 'sem Pix cadastrado'
-                        : `Pix ${maskPixKey({ kind: (person.pixKind ?? 'random') as 'cpf', value: person.pixKey })}`}
-                    </Text>
-                  </View>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={`Editar Pix de ${person.name}`}
-                    hitSlop={10}
-                    onPress={() => {
-                      setEditing(editing === person.id ? undefined : person.id);
-                      setPixDraft('');
-                      setPixError(undefined);
+          {people.map((person, index) => {
+            const open = editing === person.id;
+            const canInvite = session !== null && !person.linked && !person.archived;
+            return (
+              <View key={person.id}>
+                {index === 0 ? null : <Divider />}
+
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={open ? `Fechar edição de ${person.name}` : `Editar ${person.name}`}
+                  accessibilityState={{ expanded: open }}
+                  onPress={() => { openEditor(person.id, person.name, person.pixKey); }}
+                  style={{
+                    paddingHorizontal: SPACING.lg,
+                    paddingVertical: SPACING.md,
+                    backgroundColor: open ? t.surfaceAlt : 'transparent',
+                  }}
+                >
+                  <Row>
+                    <Avatar name={person.name} seed={person.seed} size={38} />
+                    <View style={{ flex: 1, gap: 2 }}>
+                      <Row gap={SPACING.xs}>
+                        <Text variant="body" strong={person.isMe} tone={person.archived ? 'faint' : 'default'}>
+                          {person.name}
+                        </Text>
+                        {person.isMe ? <Badge label="você" tone="accent" /> : null}
+                        {person.archived ? <Badge label="removido" /> : null}
+                      </Row>
+                      <Text variant="caption" tone={person.pixKey === null ? 'faint' : 'muted'}>
+                        {person.pixKey === null
+                          ? 'sem chave Pix'
+                          : `Pix ${maskPixKey({ kind: (person.pixKind ?? 'random') as 'cpf', value: person.pixKey })}`}
+                      </Text>
+                    </View>
+                    <Row gap={SPACING.xs}>
+                      <Text variant="label" tone="accent">
+                        {open ? 'Fechar' : 'Editar'}
+                      </Text>
+                      <View style={{ transform: [{ rotate: open ? '90deg' : '0deg' }] }}>
+                        <IconChevron size={14} color={t.accent} />
+                      </View>
+                    </Row>
+                  </Row>
+                </Pressable>
+
+                {open ? (
+                  <View
+                    style={{
+                      paddingHorizontal: SPACING.lg,
+                      paddingBottom: SPACING.lg,
+                      gap: SPACING.md,
+                      backgroundColor: t.surfaceAlt,
                     }}
                   >
-                    <Text variant="label" tone="accent">
-                      {person.pixKey === null ? 'Cadastrar' : 'Trocar'}
-                    </Text>
-                  </Pressable>
-                </Row>
-
-                {person.isMe ? null : (
-                  <Row gap={SPACING.lg}>
-                    {session !== null && !person.linked && !person.archived ? (
-                      <Pressable
-                        accessibilityRole="button"
-                        accessibilityLabel={`Convidar ${person.name}`}
-                        onPress={() => { void invite(person.id); }}
-                        disabled={invitingId !== undefined}
-                      >
-                        <Text variant="label" tone="accent">
-                          {invitingId === person.id ? 'Gerando convite…' : `Convidar ${person.name}`}
-                        </Text>
-                      </Pressable>
-                    ) : null}
-
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel={person.archived ? `Trazer ${person.name} de volta` : `Remover ${person.name}`}
-                      onPress={() => { toggleArchive(person.id, person.name, person.archived, person.hasExpenses); }}
-                    >
-                      <Text variant="label" tone={person.archived ? 'muted' : 'negative'}>
-                        {person.archived ? 'Trazer de volta' : 'Remover'}
+                    <View style={{ gap: SPACING.xs }}>
+                      <Text variant="overline" tone="muted">
+                        Nome
                       </Text>
-                    </Pressable>
-                  </Row>
-                )}
-
-                {editing === person.id ? (
-                  <View style={{ gap: SPACING.sm }}>
-                    <Row>
                       <TextInput
-                        value={pixDraft}
+                        value={nameDraft}
                         onChangeText={(text) => {
-                          setPixDraft(text);
-                          setPixError(undefined);
+                          setNameDraft(text);
+                          setEditError(undefined);
                         }}
-                        placeholder="CPF, e-mail, telefone ou chave aleatória"
+                        placeholder="Como essa pessoa aparece na viagem"
                         placeholderTextColor={t.textFaint}
-                        autoCapitalize="none"
-                        accessibilityLabel="Chave Pix"
+                        accessibilityLabel={`Nome de ${person.name}`}
                         style={{
-                          flex: 1,
                           minHeight: MIN_TOUCH,
                           fontSize: 15,
                           color: t.text,
-                          backgroundColor: t.surfaceAlt,
+                          backgroundColor: t.surface,
                           borderRadius: RADIUS.md,
                           paddingHorizontal: SPACING.md,
                         }}
                       />
-                      <Pressable
-                        accessibilityRole="button"
-                        accessibilityLabel="Salvar chave Pix"
-                        onPress={() => { savePix(person.id); }}
-                        style={{ backgroundColor: t.accent, borderRadius: RADIUS.pill, padding: 11 }}
-                      >
-                        <IconCheck size={16} color={t.onAccent} />
-                      </Pressable>
-                    </Row>
-                    {pixError === undefined ? null : (
-                      <Text variant="caption" tone="negative">
-                        {pixError}
+                    </View>
+
+                    <View style={{ gap: SPACING.xs }}>
+                      <Text variant="overline" tone="muted">
+                        Chave Pix
                       </Text>
+                      <TextInput
+                        value={pixDraft}
+                        onChangeText={(text) => {
+                          setPixDraft(text);
+                          setEditError(undefined);
+                        }}
+                        placeholder="CPF, e-mail, telefone ou chave aleatória"
+                        placeholderTextColor={t.textFaint}
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                        accessibilityLabel={`Chave Pix de ${person.name}`}
+                        style={{
+                          minHeight: MIN_TOUCH,
+                          fontSize: 15,
+                          color: t.text,
+                          backgroundColor: t.surface,
+                          borderRadius: RADIUS.md,
+                          paddingHorizontal: SPACING.md,
+                        }}
+                      />
+                      <Text variant="caption" tone="faint">
+                        {person.pixKey === null
+                          ? 'Serve para o grupo te pagar no fim da viagem. Dá para deixar em branco.'
+                          : 'Apagar o campo remove a chave cadastrada.'}
+                      </Text>
+                    </View>
+
+                    {editError === undefined ? null : (
+                      <Text variant="caption" tone="negative">
+                        {editError}
+                      </Text>
+                    )}
+
+                    <Row gap={SPACING.sm}>
+                      <Button
+                        label="Salvar"
+                        icon={<IconCheck size={15} color={t.onAccent} />}
+                        onPress={() => { save(person.id); }}
+                        style={{ flex: 1 }}
+                      />
+                      <Button label="Cancelar" variant="secondary" onPress={closeEditor} style={{ flex: 1 }} />
+                    </Row>
+
+                    {person.isMe ? null : (
+                      <>
+                        <Divider />
+                        <Row style={{ justifyContent: 'space-between' }}>
+                          {canInvite ? (
+                            <Pressable
+                              accessibilityRole="button"
+                              accessibilityLabel={`Convidar ${person.name}`}
+                              onPress={() => { void invite(person.id); }}
+                              disabled={invitingId !== undefined}
+                              hitSlop={8}
+                            >
+                              <Text variant="label" tone="accent">
+                                {invitingId === person.id ? 'Gerando convite…' : 'Convidar para o app'}
+                              </Text>
+                            </Pressable>
+                          ) : (
+                            <Text variant="caption" tone="faint">
+                              {person.linked ? 'Já entrou com a própria conta' : ' '}
+                            </Text>
+                          )}
+
+                          <Pressable
+                            accessibilityRole="button"
+                            accessibilityLabel={
+                              person.archived ? `Trazer ${person.name} de volta` : `Remover ${person.name} da viagem`
+                            }
+                            onPress={() => {
+                              toggleArchive(person.id, person.name, person.archived, person.hasExpenses);
+                            }}
+                            hitSlop={8}
+                          >
+                            <Text variant="label" tone={person.archived ? 'muted' : 'negative'}>
+                              {person.archived ? 'Trazer de volta' : 'Remover da viagem'}
+                            </Text>
+                          </Pressable>
+                        </Row>
+                      </>
                     )}
                   </View>
                 ) : null}
               </View>
-            </View>
-          ))}
+            );
+          })}
         </Card>
 
         <Card>

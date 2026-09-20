@@ -5,6 +5,12 @@ estão em `LOJA.md`.
 
 ---
 
+> **Situação resolvida (set/2026):** o Apple ID `eng.toschi@icloud.com` é
+> pessoal e tem papel de **Admin** no time "Goawake real estate ltda" — não é
+> o titular. Logo a inscrição própria está livre: **mesmo Apple ID, inscrição
+> Individual**, sem criar conta nova. O raciocínio que levou aí fica abaixo,
+> porque a situação muda se um dia virar titular de algum time.
+
 ## 1. A conta Apple: o nó a desatar primeiro
 
 A regra que importa: **um Apple ID pode ter uma única inscrição própria no
@@ -73,10 +79,14 @@ Apple mexeu nessa regra mais de uma vez.
 ## 2. Ordem das coisas (Apple)
 
 1. Resolver o Apple ID conforme a tabela acima e ativar 2FA nele.
-2. Inscrever-se em developer.apple.com/programs — Individual, US$ 99.
-   Costuma cair em 24–48h; às vezes na hora.
+2. Inscrever-se como Individual, US$ 99. **Pelo app Apple Developer no
+   iPhone costuma ser mais rápido que pelo site**: a verificação de
+   identidade sai pelo próprio aparelho, e às vezes aprova no mesmo dia.
+   O iPhone precisa estar logado com o Apple ID certo.
 3. Aceitar o contrato de apps gratuitos em App Store Connect → Business.
-4. Criar o registro do app em App Store Connect → Apps → **+**:
+4. Criar o registro do app em App Store Connect → Apps → **+** — **confira o
+   seletor de time antes de clicar**, que agora são dois e criar o RachaPila
+   dentro da Goawake dá um trabalho enorme para desfazer:
    - Plataforma: iOS
    - Nome: `RachaPila`
    - Idioma principal: Português (Brasil)
@@ -146,9 +156,18 @@ eas submit --profile production --platform android --latest
 
 ---
 
-## 5. O que ainda trava o envio
+## 5. O que dá para fazer enquanto a inscrição não sai
+
+O build de **Android não depende de conta nenhuma**. `eas build --profile
+production --platform android` roda hoje e já entrega o `.aab` — a conta do
+Google só é necessária na hora de enviar. Vale rodar antes, porque é no
+primeiro build que aparecem os erros de configuração nativa, e descobrir isso
+com a fila da Apple já vencida é perder o dia.
 
 - [ ] Hospedar `web/` (Cloudflare Pages resolve arrastando a pasta) — as URLs
       de suporte e privacidade são campos obrigatórios.
-- [ ] `contato@rachapila.com.br` receber de verdade.
+- [ ] `contato@rachapila.com.br` receber de verdade. Zoho Mail no plano
+      gratuito resolve só com registros MX no Registro.br, sem trocar os
+      servidores de nome — e portanto sem encostar no que o Resend criou.
 - [ ] Capturas de tela 6,7"/6,9" (1290×2796) — ver `LOJA.md`.
+- [ ] `eas init` e o primeiro build de Android.

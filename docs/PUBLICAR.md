@@ -439,17 +439,30 @@ existir conta no Google, que só é exigida na hora de enviar.
       Abra o link **no mesmo aparelho** onde o app está instalado: é o que faz
       o `rachapila://` devolver a sessão para o app certo.
 
-- [ ] Capturas de tela **1284×2778** (o campo da ficha pede 6,5 pol.) — ver
-      `LOJA.md`. É a resolução de um **iPhone 14 Pro Max**; se o aparelho na
-      mão não for esse, use o simulador do Mac:
+- [ ] Capturas de tela **1284×2778** (o campo da ficha pede 6,5 pol.). São
+      só tamanhos de Max/Plus: um **iPhone Pro** dá 1179×2556 ou 1206×2622 e
+      é recusado. Quais telas escolher está em `LOJA.md`.
+
+      **Com um Pro na mão** — tire os prints e converta:
+
+      ```
+      ./scripts/capturas.sh ~/Desktop/prints
+      ```
+
+      A proporção dos dois aparelhos é quase a mesma (0,460 contra 0,462), de
+      modo que ampliar até a largura exigida e aparar a sobra de altura pelo
+      centro sai visualmente idêntico — e o corte cai onde há barra de status
+      e área de gesto, não conteúdo. Usa o `sips`, que já vem no macOS.
+
+      **Com o Xcode já instalado**, o simulador de iPhone 14 Pro Max entrega
+      o tamanho exato, sem conversão:
 
       ```
       eas build --profile simulator --platform ios
       ```
 
-      O perfil `simulator` existe para isso. Baixe o `.app`, arraste para um
-      simulador de iPhone 14 Pro Max e tire as capturas de lá — saem
-      exatamente em 1284×2778, sem conversão nenhuma.
+      Baixe o `.app` e arraste para dentro do simulador. Só vale a pena se o
+      Xcode já estiver lá: são ~10 GB de download para quatro capturas.
 
 ### `.aab` não instala no celular
 

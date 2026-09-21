@@ -178,5 +178,21 @@ com a fila da Apple já vencida é perder o dia.
 - [ ] `contato@rachapila.com.br` receber de verdade. Zoho Mail no plano
       gratuito resolve só com registros MX no Registro.br, sem trocar os
       servidores de nome — e portanto sem encostar no que o Resend criou.
+- [x] `eas init` e o primeiro build de Android. Feito em 20/09/2026: projeto
+      `@fernando.toschi/rachapila`, keystore gerada e guardada na EAS,
+      `versionCode` passa a ser controlado pelo servidor. O valor do build não
+      é o `.aab` em si — é a prova de que a configuração nativa compila.
 - [ ] Capturas de tela 6,7"/6,9" (1290×2796) — ver `LOJA.md`.
-- [ ] `eas init` e o primeiro build de Android.
+
+### `.aab` não instala no celular
+
+O que o perfil `production` gera é um *bundle* para a loja, e nenhum Android
+instala isso direto. Para pôr a build num aparelho e testar de verdade, o
+perfil `preview` entrega um `.apk`:
+
+```
+eas build --profile preview --platform android
+```
+
+Não vale guardar o `.aab`: quando a conta do Google sair, o build é refeito de
+qualquer jeito, já com o que tiver mudado até lá.

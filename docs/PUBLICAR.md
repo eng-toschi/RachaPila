@@ -295,10 +295,24 @@ eas submit --profile production --platform android --latest
 2. **Antes de tocar no DNS**, confira se já existe algum MX no domínio raiz.
    O Resend usa subdomínio (`send.rachapila.com.br`), então normalmente a
    raiz está livre; havendo um MX lá, pare e confira antes de sobrescrever.
-3. No **Registro.br**, adicione os dois MX que o ImprovMX mostrou, com as
-   prioridades que ele indicar. **Não encoste em nenhum TXT** — é onde vivem
-   o SPF e o DKIM do Resend.
-4. Espere a propagação (minutos a horas) até o ImprovMX marcar como
+3. No **Registro.br**, adicione **apenas os dois MX** que o ImprovMX mostrou,
+   com as prioridades que ele indicar.
+
+   > **A tela de setup do ImprovMX também oferece um TXT com
+   > `v=spf1 include:spf.improvmx.com ~all`. Não adicione.** O SPF é do
+   > envio, e quem envia pelo domínio é o Resend, que já tem o SPF dele na
+   > raiz. **Dois registros `v=spf1` no mesmo domínio invalidam os dois**, e o
+   > que quebra é a entrega do link mágico. Encaminhamento de entrada não
+   > precisa do SPF do ImprovMX — ele só seria necessário para *enviar* pelo
+   > SMTP deles, que é recurso pago e não se usa aqui.
+
+4. Prefira um alias explícito **`contato`** ao catch-all `*` que vem sugerido:
+   endereço de domínio novo vira alvo de varredura de spam, e o asterisco
+   aceita qualquer coisa antes do `@`.
+5. Confirme que o destino do encaminhamento é o **Gmail**, não o iCloud. É o
+   Gmail que consegue responder como `contato@`; com o iCloud no destino,
+   metade do motivo da escolha se perde.
+6. Espere a propagação (minutos a horas) até o ImprovMX marcar como
    verificado, e teste mandando uma mensagem de outro endereço.
 
 ### Responder como `contato@`, sem expor o pessoal

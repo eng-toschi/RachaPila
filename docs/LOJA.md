@@ -67,33 +67,73 @@ dividir conta,racha,viagem,despesas,amigos,pix,grupo,câmbio,IOF,gastos,rateio
 
 ---
 
-## 2. Rótulos de privacidade
+## 2. Privacidade do app — passo a passo do formulário
 
-O app **não rastreia ninguém**: em "Data Used to Track You", a resposta é
-**nenhum dado**. Não há SDK de anúncio, análise ou atribuição no projeto —
-isso é verificável no `package.json`.
+A tela abre dizendo **"Dados não coletados"**. Isso está errado e precisa ser
+corrigido: o app manda e-mail e conteúdo para o servidor a partir do momento
+em que uma viagem é compartilhada. Declarar a menos é dos problemas mais
+sérios que se pode ter com a Apple.
 
-O que é coletado (no sentido da Apple: sai do aparelho), tudo **vinculado à
-identidade** e tudo com a finalidade **"App Functionality"** apenas:
+### 2.1 Política de privacidade
 
-| Dado | Categoria da Apple | Quando sai do aparelho |
+Em **Política de privacidade → Editar**, cole a URL da página hospedada
+(`.../privacidade.html`). A segunda URL, "opções de privacidade do usuário",
+é opcional e não se aplica: a exclusão de conta é feita dentro do app.
+
+### 2.2 Tipos de dados
+
+Em **Tipos de dados → Editar**, marque exatamente estes cinco, e mais nada:
+
+| Categoria | Tipo a marcar | Por que |
 |---|---|---|
-| E-mail | Contact Info → Email Address | Ao criar a conta |
-| Viagens, despesas, valores, participantes | User Content → Other User Content | Só ao compartilhar a viagem |
-| Coordenada de onde a despesa aconteceu | Location → Precise Location | Só ao compartilhar a viagem, e só se a permissão foi dada |
-| Chave Pix (pode ser um CPF) | ver observação abaixo | Só ao compartilhar a viagem, e só se a pessoa cadastrou |
+| Informações de contato | **Endereço de e-mail** | é o que a conta guarda, para mandar o link de entrada |
+| Informações financeiras | **Outras informações financeiras** | a chave Pix (ver 2.4) |
+| Localização | **Localização precisa** | a coordenada da despesa vai sem arredondamento (`src/services/place.ts`) |
+| Conteúdo do usuário | **Outro conteúdo do usuário** | viagens, despesas, valores, nomes dos participantes |
+| Identificadores | **ID do usuário** | o id da conta que acompanha cada registro sincronizado |
 
-**Observação sobre a chave Pix:** ela não encaixa bem em nenhuma categoria da
-Apple. "Payment Info" é pensado para cartão de crédito; um CPF é mais próximo
-de identificador nacional. A escolha mais defensável é declarar em
-**Financial Info → Other Financial Info** e descrever honestamente no campo
-de texto. Vale conferir a redação atual das categorias na hora de preencher,
-porque a Apple mexe nelas de tempos em tempos — e declarar a mais é sempre
+### 2.3 As três perguntas de cada tipo
+
+A Apple repete as mesmas três para cada item marcado. Para **todos os cinco**,
+as respostas são iguais:
+
+1. **Usado para rastrear você?** → **Não.** Não há um único SDK de anúncio,
+   análise ou atribuição no projeto, e isso é verificável no `package.json`.
+2. **Finalidades** → apenas **Funcionalidade do app**. Nada de publicidade,
+   análise ou personalização.
+3. **Vinculado à identidade do usuário?** → **Sim**, nos cinco. Tudo que
+   sincroniza fica amarrado à conta de quem lançou.
+
+### 2.4 A chave Pix, que não encaixa em lugar nenhum
+
+Ela não tem categoria boa na lista da Apple. "Informações de pagamento" é
+pensada para cartão de crédito; uma chave Pix que é CPF está mais perto de
+documento de identidade. A escolha mais defensável é **Informações
+financeiras → Outras informações financeiras**, descrevendo no campo de texto
+o que ela é de fato. Confira a redação vigente das categorias na hora de
+preencher: a Apple mexe nelas de tempos em tempos, e declarar a mais é sempre
 mais seguro do que declarar a menos.
 
-**Google Play (Data Safety):** mesmas respostas. Marcar que os dados são
-criptografados em trânsito (são, é HTTPS) e que o usuário pode pedir a
-exclusão (pode, dentro do app).
+### 2.5 O que deliberadamente NÃO se marca
+
+- **Nome** (Informações de contato) — o app nunca pede o nome de quem usa. Os
+  nomes que aparecem são rótulos que a pessoa digita para os participantes, e
+  isso é conteúdo, já coberto por "Outro conteúdo do usuário".
+- **Contatos** — a agenda do aparelho nunca é lida.
+- **Dados de uso, Diagnóstico, Histórico de navegação ou pesquisa** — não
+  existe coleta nenhuma desse tipo.
+
+### 2.6 Publicar
+
+O botão **Publicar**, no alto à direita, é o que vale — preencher sem
+publicar deixa a ficha incompleta e trava o envio. Esses rótulos podem ser
+editados depois, sem enviar versão nova.
+
+### 2.7 Google Play (Data Safety)
+
+Mesmas respostas. Marcar ainda que os dados são **criptografados em trânsito**
+(são, é HTTPS) e que o usuário **pode pedir a exclusão** (pode, dentro do
+app, em Entrar → "Excluir minha conta").
 
 ---
 

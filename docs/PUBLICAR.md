@@ -7,9 +7,13 @@ estão em `LOJA.md`.
 
 > **Situação resolvida (set/2026):** o Apple ID `eng.toschi@icloud.com` é
 > pessoal e tem papel de **Admin** no time "Goawake real estate ltda" — não é
-> o titular. Logo a inscrição própria está livre: **mesmo Apple ID, inscrição
-> Individual**, sem criar conta nova. O raciocínio que levou aí fica abaixo,
-> porque a situação muda se um dia virar titular de algum time.
+> o titular. Logo a inscrição própria estava livre: **mesmo Apple ID,
+> inscrição Individual**, sem criar conta nova. **Aprovada em 21/09/2026.**
+> O raciocínio que levou aí fica abaixo, porque a situação muda se um dia
+> virar titular de algum time.
+
+> **Com dois times no mesmo Apple ID, todo comando e toda tela pedem
+> conferência do time antes do clique.** É o erro mais caro desta fase.
 
 ## 1. A conta Apple: o nó a desatar primeiro
 
@@ -182,7 +186,16 @@ com a fila da Apple já vencida é perder o dia.
       `@fernando.toschi/rachapila`, keystore gerada e guardada na EAS,
       `versionCode` passa a ser controlado pelo servidor. O valor do build não
       é o `.aab` em si — é a prova de que a configuração nativa compila.
-- [ ] Capturas de tela 6,7"/6,9" (1290×2796) — ver `LOJA.md`.
+- [ ] Capturas de tela 6,7"/6,9" (1290×2796) — ver `LOJA.md`. A Apple exige
+      esse tamanho; se o iPhone na mão for menor, use o simulador do Mac:
+
+      ```
+      eas build --profile simulator --platform ios
+      ```
+
+      O perfil `simulator` existe para isso. Baixe o `.app`, arraste para um
+      simulador de iPhone Pro Max e tire as capturas de lá — saem exatamente
+      em 1290×2796.
 
 ### `.aab` não instala no celular
 

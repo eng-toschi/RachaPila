@@ -295,8 +295,17 @@ eas submit --profile production --platform android --latest
 2. **Antes de tocar no DNS**, confira se já existe algum MX no domínio raiz.
    O Resend usa subdomínio (`send.rachapila.com.br`), então normalmente a
    raiz está livre; havendo um MX lá, pare e confira antes de sobrescrever.
-3. No **Registro.br**, adicione **apenas os dois MX** que o ImprovMX mostrou,
-   com as prioridades que ele indicar.
+3. No **Registro.br**, adicione **apenas os dois MX** que o ImprovMX mostrou
+   (`mx1.improvmx.com` com prioridade 10, `mx2.improvmx.com` com 20).
+
+   > No formulário do Registro.br o campo **Nome** já vem com
+   > `.rachapila.com.br` colado à direita. Para o domínio raiz ele fica
+   > **vazio** — digitar `rachapila.com.br` ali cria
+   > `rachapila.com.br.rachapila.com.br` e nada funciona.
+
+   A zona do domínio, conferida em 21/09/2026, tem só DKIM (`resend._domainkey`),
+   os CNAME `send` e `rsend` do Resend, e um DMARC `p=none`. **Nenhum SPF e
+   nenhum MX na raiz**, então os dois MX entram sem conflito com nada.
 
    > **A tela de setup do ImprovMX também oferece um TXT com
    > `v=spf1 include:spf.improvmx.com ~all`. Não adicione**, por duas razões.

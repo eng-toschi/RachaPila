@@ -33,7 +33,13 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      # `enablement` liga o Pages na primeira execução. Sem isto o workflow
+      # falha com "Get Pages site failed" até alguém abrir as configurações
+      # do repositório à mão — e a ordem natural das coisas é o push vir
+      # antes desse clique.
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: web

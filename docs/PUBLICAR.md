@@ -145,10 +145,27 @@ Para enviar:
 eas submit --profile production --platform ios --latest
 ```
 
-Para não digitar Apple ID e senha a cada envio, gere uma chave de API em App
-Store Connect → Users and Access → Integrations → App Store Connect API
-(papel **App Manager**), **dentro do seu time**, e registre com
-`eas credentials`. A chave é por time — uma da consultoria não serve.
+Na primeira vez o `eas submit` oferece gerar a chave de API do App Store
+Connect por você ("Generate a new App Store Connect API Key?"). Aceite: ela
+nasce dentro do time escolhido, a EAS guarda, e daí em diante o envio não
+pede login nenhum. Só vale fazer à mão — App Store Connect → Users and Access
+→ Integrations, papel **App Manager** — se precisar de uma chave separada
+para CI. A chave é por time; uma da consultoria não serve.
+
+### Identificadores desta conta
+
+| | |
+|---|---|
+| Apple Team ID (Individual) | `48C8FNA4NN` |
+| Provider ID | `129487094` |
+| Bundle ID | `app.rachapila.mobile` |
+| Projeto EAS | `16b03173-1765-4355-afa7-c4eb23576d71` |
+
+O Team ID está fixado no `eas.json` de propósito: com dois times no mesmo
+Apple ID, deixar a escolha para um menu interativo é convite a errar um dia
+com pressa. Falta ainda o `ascAppId` (o número do app em App Store Connect →
+Informações do app); com ele no perfil, o envio pula a etapa de conferir se o
+app existe.
 
 O `eas.json` já está com `appVersionSource: "remote"` e `autoIncrement` no
 perfil de produção: o número de build sobe sozinho a cada envio, que é a

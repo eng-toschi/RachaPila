@@ -23,7 +23,7 @@ declarada e publicada · `eas.json` fechado com Team ID e ASC App ID.
 | | Espera | Por quê agora |
 |---|---|---|
 | **Criar a conta do Google Play** (US$ 25) | dias + **14 dias de teste fechado com 12 pessoas** | é o relógio mais longo do projeto e ele só começa depois da conta aprovada |
-| **Registros MX do `contato@`** | horas de propagação de DNS | a Apple costuma testar o canal de suporte antes de aprovar |
+| **Fazer o `contato@` receber** (§ *E-mail*) | horas de propagação de DNS | a Apple costuma testar o canal de suporte antes de aprovar |
 
 Nenhuma das duas atrapalha as etapas seguintes. Só disparar e seguir.
 
@@ -274,13 +274,65 @@ eas submit --profile production --platform android --latest
 
 ---
 
-## 5. O que dá para fazer enquanto a inscrição não sai
+## 5. E-mail: fazer o `contato@` receber
 
-O build de **Android não depende de conta nenhuma**. `eas build --profile
-production --platform android` roda hoje e já entrega o `.aab` — a conta do
-Google só é necessária na hora de enviar. Vale rodar antes, porque é no
-primeiro build que aparecem os erros de configuração nativa, e descobrir isso
-com a fila da Apple já vencida é perder o dia.
+**Decisão: ImprovMX para receber, Gmail para ler e responder.** O que pesou:
+
+- O ImprovMX **só acrescenta registros MX**, que são da recepção. O SPF e o
+  DKIM que o Resend validou — que são do envio — ficam intocados. A
+  alternativa do iCloud+ Custom Domain exigiria mesclar o SPF do iCloud com o
+  do Resend no mesmo registro, e SPF mal mesclado derruba a entrega do link
+  mágico, que é a função mais crítica do app.
+- Só o Gmail aceita **enviar como** um endereço externo por SMTP próprio. Com
+  o iCloud como destino daria para ler, mas as respostas sairiam do endereço
+  pessoal — exatamente o que se quer evitar.
+- Custo zero, e nenhuma caixa postal nova para lembrar de conferir.
+
+### Receber
+
+1. **improvmx.com** → *Add domain* → `rachapila.com.br`, com destino o Gmail
+   pessoal. Ele devolve dois registros MX.
+2. **Antes de tocar no DNS**, confira se já existe algum MX no domínio raiz.
+   O Resend usa subdomínio (`send.rachapila.com.br`), então normalmente a
+   raiz está livre; havendo um MX lá, pare e confira antes de sobrescrever.
+3. No **Registro.br**, adicione os dois MX que o ImprovMX mostrou, com as
+   prioridades que ele indicar. **Não encoste em nenhum TXT** — é onde vivem
+   o SPF e o DKIM do Resend.
+4. Espere a propagação (minutos a horas) até o ImprovMX marcar como
+   verificado, e teste mandando uma mensagem de outro endereço.
+
+### Responder como `contato@`, sem expor o pessoal
+
+No Gmail: **Configurações → Contas e importação → "Enviar e-mail como" →
+Adicionar outro endereço**.
+
+| Campo | Valor |
+|---|---|
+| Nome | `RachaPila` |
+| E-mail | `contato@rachapila.com.br` |
+| Servidor SMTP | `smtp.resend.com` |
+| Porta | `587` (TLS) |
+| Usuário | `resend` |
+| Senha | a API key do Resend |
+
+O Gmail manda um código de confirmação para `contato@`, que o ImprovMX
+entrega na sua caixa — o ciclo se fecha sozinho.
+
+É o mesmo Resend que entrega os links mágicos, então não há conta nem
+credencial nova. O volume de resposta a suporte é desprezível perto do limite
+do plano gratuito.
+
+### Mais endereços, se um dia precisar
+
+O ImprovMX dá aliases ilimitados no plano gratuito, todos para o mesmo
+destino: `suporte@`, `privacidade@`, o que fizer sentido. Hoje um basta — é
+o único que as páginas publicam.
+
+
+## 6. O que ainda falta
+
+O build de **Android não depende de conta nenhuma**: o `.aab` sai antes de
+existir conta no Google, que só é exigida na hora de enviar.
 
 - [x] **GitHub Pages ligado** (21/09/2026). O workflow
       `.github/workflows/pages.yml` publica `web/` a cada mudança nela, então
@@ -291,20 +343,10 @@ com a fila da Apple já vencida é perder o dia.
       | URL de suporte | `https://eng-toschi.github.io/RachaPila/` |
       | URL da Política de privacidade | `https://eng-toschi.github.io/RachaPila/privacidade.html` |
 
-- [ ] **`contato@rachapila.com.br` receber de verdade — agora é o risco
-      maior.** As duas páginas no ar publicam esse endereço, a Apple costuma
-      testar o canal de suporte antes de aprovar, e a LGPD exige que ele
-      funcione. Hoje o domínio só envia, via Resend.
-
-      Zoho Mail no plano gratuito resolve com registros MX no Registro.br,
-      sem trocar os servidores de nome — e portanto sem encostar no que o
-      Resend criou. Enquanto isso não acontece, a alternativa honesta é
-      trocar o endereço nas páginas por um que já receba: uma linha em cada
-      arquivo de `web/`, e o próprio workflow republica.
-- [x] `eas init` e o primeiro build de Android. Feito em 20/09/2026: projeto
-      `@fernando.toschi/rachapila`, keystore gerada e guardada na EAS,
-      `versionCode` passa a ser controlado pelo servidor. O valor do build não
-      é o `.aab` em si — é a prova de que a configuração nativa compila.
+- [ ] **`contato@rachapila.com.br` receber de verdade** — ver a seção
+      *E-mail* abaixo. É o risco pendente: as duas páginas no ar publicam
+      esse endereço, a Apple costuma testar o canal de suporte antes de
+      aprovar, e a LGPD exige que ele funcione.
 - [ ] Capturas de tela **1284×2778** (o campo da ficha pede 6,5 pol.) — ver
       `LOJA.md`. É a resolução de um **iPhone 14 Pro Max**; se o aparelho na
       mão não for esse, use o simulador do Mac:

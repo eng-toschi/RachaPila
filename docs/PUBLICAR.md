@@ -401,6 +401,29 @@ existir conta no Google, que só é exigida na hora de enviar.
       | URL da Política de privacidade | `https://eng-toschi.github.io/RachaPila/privacidade.html` |
 
 - [x] **`contato@rachapila.com.br` recebe e responde** (21/09/2026) — §5.
+- [ ] **Traduzir o e-mail de entrada.** O modelo padrão do Supabase chega em
+      inglês — assunto *"Your sign-in link"* —, e é o **primeiro contato** de
+      quem se cadastra num app inteiro em português. Em
+      **Supabase → Authentication → Email Templates → Magic Link**:
+
+      Assunto:
+      ```
+      Seu link de entrada no RachaPila
+      ```
+
+      Corpo:
+      ```html
+      <h2>Entrar no RachaPila</h2>
+      <p>Toque no link abaixo para entrar. Ele vale por pouco tempo e só
+      funciona uma vez.</p>
+      <p><a href="{{ .ConfirmationURL }}">Entrar no RachaPila</a></p>
+      <p>Se não foi você que pediu, pode ignorar esta mensagem — nada
+      acontece.</p>
+      ```
+
+      Abra o link **no mesmo aparelho** onde o app está instalado: é o que faz
+      o `rachapila://` devolver a sessão para o app certo.
+
 - [ ] Capturas de tela **1284×2778** (o campo da ficha pede 6,5 pol.) — ver
       `LOJA.md`. É a resolução de um **iPhone 14 Pro Max**; se o aparelho na
       mão não for esse, use o simulador do Mac:

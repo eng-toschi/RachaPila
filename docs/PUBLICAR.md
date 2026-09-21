@@ -192,16 +192,17 @@ com a fila da Apple já vencida é perder o dia.
       `@fernando.toschi/rachapila`, keystore gerada e guardada na EAS,
       `versionCode` passa a ser controlado pelo servidor. O valor do build não
       é o `.aab` em si — é a prova de que a configuração nativa compila.
-- [ ] Capturas de tela 6,7"/6,9" (1290×2796) — ver `LOJA.md`. A Apple exige
-      esse tamanho; se o iPhone na mão for menor, use o simulador do Mac:
+- [ ] Capturas de tela **1284×2778** (o campo da ficha pede 6,5 pol.) — ver
+      `LOJA.md`. É a resolução de um **iPhone 14 Pro Max**; se o aparelho na
+      mão não for esse, use o simulador do Mac:
 
       ```
       eas build --profile simulator --platform ios
       ```
 
       O perfil `simulator` existe para isso. Baixe o `.app`, arraste para um
-      simulador de iPhone Pro Max e tire as capturas de lá — saem exatamente
-      em 1290×2796.
+      simulador de iPhone 14 Pro Max e tire as capturas de lá — saem
+      exatamente em 1284×2778, sem conversão nenhuma.
 
 ### `.aab` não instala no celular
 

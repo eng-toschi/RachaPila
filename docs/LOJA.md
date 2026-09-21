@@ -45,6 +45,15 @@ para uma viagem específica — e aí só aquela viagem vai. Sem anúncios, sem
 rastreadores, sem vender dado de ninguém.
 ```
 
+**Texto promocional (máx. 170 caracteres):**
+
+Este é o único campo que se troca sem enviar versão nova — serve para avisar
+de novidade sem passar por revisão. Vale guardar esse trunfo.
+
+```
+Divida os gastos da viagem sem planilha. Funciona sem internet, usa a cotação do dia de cada gasto e, no fim, diz quem paga a quem — com Pix copia e cola.
+```
+
 **Palavras-chave (máx. 100 caracteres, separadas por vírgula):**
 ```
 dividir conta,racha,viagem,despesas,amigos,pix,grupo,câmbio,IOF,gastos,rateio
@@ -102,8 +111,9 @@ exclusão (pode, dentro do app).
       O caminho completo — qual Apple ID usar quando o atual está preso ao
       time de um cliente, Individual x Organization, e a esteira da EAS —
       está em `PUBLICAR.md`.
-- [ ] **Capturas de tela** — a Apple pede pelo menos as de 6,7"/6,9"
-      (1290×2796). Dá para tirar do simulador do iPhone ou do aparelho.
+- [ ] **Capturas de tela** — o campo da ficha pede o tamanho de 6,5 pol., e
+      aceita 1242×2688 ou **1284×2778**. O segundo é o que sai de um simulador
+      de **iPhone 14 Pro Max** — mire nele e não há conversão para fazer.
       Boas candidatas: lista de despesas de uma viagem cheia, a divisão de uma
       despesa com o valor por cabeça, a aba de saldos, o fechamento com Pix.
 - [ ] **Build e envio:** `eas build --profile production --platform ios` e

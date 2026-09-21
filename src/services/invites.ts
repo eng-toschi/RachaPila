@@ -8,9 +8,23 @@
  * significa nada para quem vai aceitar.
  */
 import * as Crypto from 'expo-crypto';
+import { WEB_BASE_URL } from '../config/app';
 import type { Database } from '../db/driver';
 import { syncTrip } from '../sync/client';
 import { supabase } from './supabase';
+
+/**
+ * Endereço para compartilhar um convite.
+ *
+ * O token vai na query, não no caminho: a página é estática, e sem servidor
+ * para rotear `/convite/<token>` daria 404. A página tenta abrir o app
+ * sozinha pelo `rachapila://` e, para quem ainda não tem, mostra o caminho
+ * da loja — que é o que faltava para um convite ser útil fora do grupo de
+ * quem já instalou.
+ */
+export function inviteUrl(token: string): string {
+  return `${WEB_BASE_URL}/convite.html?c=${token}`;
+}
 
 export type CreateInviteResult =
   | { readonly ok: true; readonly token: string }

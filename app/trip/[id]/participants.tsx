@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { addParticipant, updateParticipant } from '@/commands';
 import { findMe, listParticipants, participantHasExpenses } from '@/db/repositories';
 import { maskPixKey, parsePixKey } from '@/domain/pix';
-import { createInvite } from '@/services/invites';
+import { createInvite, inviteUrl } from '@/services/invites';
 import { useAuth } from '@/state/auth';
 import { useDatabase, useMutate, useQuery } from '@/state/database';
 import { Avatar, Badge, Button, Card, Divider, Row, Text } from '@/ui/components';
@@ -84,16 +84,17 @@ export default function ParticipantsScreen() {
       setInviteError(result.message);
       return;
     }
-    // Sem o link `https://` da Fase 7 (exige hospedar a página do convite), o
-    // `rachapila://` vira texto morto em WhatsApp e afins — nenhum app deles
-    // transforma esquema customizado em link tocável. Mandar o código na
-    // frente é o que de fato funciona hoje; o link some da mensagem até
-    // existir uma página de verdade para receber quem ainda não tem o app.
+    // Link `https://`, não `rachapila://`: nenhum app de mensagem transforma
+    // esquema customizado em link tocável, então o deep link cru virava texto
+    // morto. A página do convite resolve os dois lados — abre o app sozinha
+    // para quem já tem, e leva à loja quem ainda não tem. O código não vai
+    // mais na mensagem porque a página o mostra, e mensagem curta é mais
+    // provável de ser lida até o fim.
     await Share.share({
       message:
         `Entra na nossa viagem no RachaPila!\n\n` +
-        `Código do convite: ${result.token}\n\n` +
-        `No app, toque no ícone de pessoa na tela inicial → "Tenho um convite" → cole o código.`,
+        `${inviteUrl(result.token)}\n\n` +
+        `O link abre o app. Se você ainda não tem, ele leva para baixar.`,
     });
   };
 

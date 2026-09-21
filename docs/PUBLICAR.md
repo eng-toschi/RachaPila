@@ -18,14 +18,19 @@ build de iOS compilado, enviado e processado (está no TestFlight) · build de
 Android compilado · site no ar pelo GitHub Pages · privacidade do app
 declarada e publicada · `eas.json` fechado com Team ID e ASC App ID.
 
-### Etapa 0 — começar agora, porque são esperas
+> **Android saiu do caminho crítico (21/09/2026).** Ver *Android, adiado* logo
+> abaixo. Tudo aqui trata do lançamento na App Store.
 
-| | Espera | Por quê agora |
+### Etapa 0 — a espera que já está correndo
+
+| | Espera | Por quê primeiro |
 |---|---|---|
-| **Criar a conta do Google Play** (US$ 25) | dias + **14 dias de teste fechado com 12 pessoas** | é o relógio mais longo do projeto e ele só começa depois da conta aprovada |
-| **Fazer o `contato@` receber** (§ *E-mail*) | horas de propagação de DNS | a Apple costuma testar o canal de suporte antes de aprovar |
+| **Fazer o `contato@` receber** (§5) | horas de propagação de DNS | a Apple costuma testar o canal de suporte antes de aprovar |
 
-Nenhuma das duas atrapalha as etapas seguintes. Só disparar e seguir.
+O "Enviar e-mail como" do Gmail **só pode ser feito depois** que os MX
+verificarem: o Gmail manda um código de confirmação para o próprio
+`contato@`, e sem recepção ele não chega. Enquanto propaga, siga para a
+Etapa 1 — ela não depende disto.
 
 ### Etapa 1 — validar o app no TestFlight
 
@@ -52,11 +57,24 @@ aberto ao lado.
 
 Escolher o build, definir preço e países, e **Adicionar para revisão**.
 
-### Depois
+### Android, adiado
 
-Android: subir o `.aab`, montar o teste fechado e esperar os 14 dias. E, se
-quiser trocar o nome do vendedor, o caminho está em §1 — não precisa
-atrasar nada disto.
+Decidido em 21/09/2026: **o Android espera o iOS entrar no ar.** O motivo não
+é técnica — o `.aab` já compila — é que cada frente aberta tem um custo de
+atenção, e as duas contas cobram decisões diferentes ao mesmo tempo.
+
+A escolha da conta do Google fica para depois, e ela não é óbvia:
+
+- **Pessoal** aprova em dias, mas obriga a **14 dias de teste fechado com 12
+  pessoas** antes da produção, e exige dados de contato verificados.
+- **Organização** dispensa esse teste, mas pede CNPJ e número D-U-N-S. No
+  Brasil o CNPJ sai no mesmo dia por um **MEI**, grátis; o D-U-N-S leva de
+  uma a duas semanas. Resolveria de quebra o nome público, que no Google é
+  campo livre mas na Apple exige DBA ou conta de organização (§1).
+
+Os dois caminhos chegam ao ar em prazo parecido. Quando for a hora, decidir
+por isto: se houver intenção de ter CNPJ de qualquer forma, o MEI paga dois
+problemas com uma conta só.
 
 ---
 

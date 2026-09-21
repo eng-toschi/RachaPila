@@ -225,6 +225,40 @@ confundiu, e se algo travou.
 **Informações de contato:** nome, sobrenome, telefone e e-mail de verdade —
 é por onde a Apple liga se algo travar na revisão.
 
+### "O que testar" — é por build, e muda a cada um
+
+Aparece para o testador dentro do TestFlight, ao lado do botão de instalar.
+A descrição acima diz o que o app é; esta diz **onde olhar nesta versão**.
+Pedido genérico devolve "parece ok", que não vale nada.
+
+Para o primeiro build aberto a amigos:
+
+```
+Primeira versão aberta para teste.
+
+Onde olhar com mais atenção:
+
+• CONVITE — gere um convite e mande para alguém pelo WhatsApp. O link deve
+abrir o app direto em quem já tem, e levar para baixá-lo em quem não tem.
+
+• VÁRIAS MOEDAS — lance despesas em duas moedas diferentes e confira se o
+total da viagem e os saldos batem com o que você esperava. A cotação usada é
+a do dia do gasto, não a de hoje, e o IOF entra no rateio.
+
+• FECHAMENTO — ao encerrar a viagem, veja se o "quem paga a quem" faz
+sentido. O app tenta o menor número possível de transferências, então pode
+aparecer você pagando a alguém com quem não dividiu nada diretamente.
+
+• SEM INTERNET — ative o modo avião, lance uma despesa, e depois reconecte.
+Nada pode se perder no caminho.
+
+Se algo parecer errado, o mais útil é dizer o que você esperava e o que
+aconteceu.
+```
+
+Nos builds seguintes, troque por uma lista curta do que mudou — é o que faz o
+testador reabrir o app em vez de ignorar a notificação.
+
 ## 3. O que ainda falta no App Store Connect
 
 - [x] Privacidade do app — cinco tipos declarados e publicados (21/09/2026).

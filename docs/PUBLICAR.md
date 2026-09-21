@@ -299,12 +299,20 @@ eas submit --profile production --platform android --latest
    com as prioridades que ele indicar.
 
    > **A tela de setup do ImprovMX também oferece um TXT com
-   > `v=spf1 include:spf.improvmx.com ~all`. Não adicione.** O SPF é do
-   > envio, e quem envia pelo domínio é o Resend, que já tem o SPF dele na
-   > raiz. **Dois registros `v=spf1` no mesmo domínio invalidam os dois**, e o
-   > que quebra é a entrega do link mágico. Encaminhamento de entrada não
-   > precisa do SPF do ImprovMX — ele só seria necessário para *enviar* pelo
-   > SMTP deles, que é recurso pago e não se usa aqui.
+   > `v=spf1 include:spf.improvmx.com ~all`. Não adicione**, por duas razões.
+   >
+   > A primeira é que ele não faz falta: SPF é regra de *envio*, e o
+   > encaminhamento de entrada não consulta o SPF do seu domínio. Os dois MX
+   > bastam. O ImprovMX sugere esse registro porque ele importa para quem usa
+   > o SMTP de envio deles, que é recurso pago e não se usa aqui.
+   >
+   > A segunda é o estrago possível: esse valor declara que **só** o ImprovMX
+   > pode enviar pelo domínio. Se o envelope de retorno do Resend usar a raiz,
+   > os links mágicos passam a ser marcados como suspeitos. E, se algum dia
+   > houver um `v=spf1` na raiz, um segundo invalida os dois.
+   >
+   > O ImprovMX vai continuar exibindo "No SPF record found" em vermelho
+   > depois disso. É esperado: o que precisa ficar verde são os MX.
 
 4. Prefira um alias explícito **`contato`** ao catch-all `*` que vem sugerido:
    endereço de domínio novo vira alvo de varredura de spam, e o asterisco

@@ -401,6 +401,21 @@ existir conta no Google, que só é exigida na hora de enviar.
       | URL da Política de privacidade | `https://eng-toschi.github.io/RachaPila/privacidade.html` |
 
 - [x] **`contato@rachapila.com.br` recebe e responde** (21/09/2026) — §5.
+- [ ] **Trocar o remetente do e-mail de entrada para `contato@`.** Em
+      **Supabase → Project Settings → Authentication → SMTP Settings**, o
+      *Sender email* é `noreply@rachapila.com.br`. Endereço que não aceita
+      resposta é sinal clássico de spam para os filtros, e o primeiro link de
+      entrada enviado ao build do TestFlight **caiu no lixo eletrônico do
+      iCloud** (21/09/2026) — sintoma de domínio novo sem reputação.
+
+      Até hoje não havia alternativa, porque nada no domínio recebia. Agora
+      `contato@` recebe (§5), então dá para usá-lo como remetente: ajuda a
+      reputação e faz chegar a você quem responder ao e-mail — e muita gente
+      responde.
+
+      É risco de produto, não cosmético: se o link de entrada cai no lixo do
+      usuário comum, o app não funciona para ele, e ninguém vai procurar lá.
+
 - [ ] **Traduzir o e-mail de entrada.** O modelo padrão do Supabase chega em
       inglês — assunto *"Your sign-in link"* —, e é o **primeiro contato** de
       quem se cadastra num app inteiro em português. Em

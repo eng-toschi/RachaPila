@@ -21,18 +21,13 @@ declarada e publicada · `eas.json` fechado com Team ID e ASC App ID.
 > **Android saiu do caminho crítico (21/09/2026).** Ver *Android, adiado* logo
 > abaixo. Tudo aqui trata do lançamento na App Store.
 
-### Etapa 0 — a espera que já está correndo
+### Etapa 0 — e-mail ✅ (21/09/2026)
 
-| | Espera | Por quê primeiro |
-|---|---|---|
-| **Fazer o `contato@` receber** (§5) | horas de propagação de DNS | a Apple costuma testar o canal de suporte antes de aprovar |
+`contato@rachapila.com.br` recebe pelo ImprovMX e cai no Gmail; as respostas
+saem como `RachaPila <contato@rachapila.com.br>` pelo SMTP do Resend, e o
+endereço pessoal segue sendo o padrão para tudo o mais. Detalhes em §5.
 
-O "Enviar e-mail como" do Gmail **só pode ser feito depois** que os MX
-verificarem: o Gmail manda um código de confirmação para o próprio
-`contato@`, e sem recepção ele não chega. Enquanto propaga, siga para a
-Etapa 1 — ela não depende disto.
-
-### Etapa 1 — validar o app no TestFlight
+### Etapa 1 — validar o app no TestFlight ← *aqui*
 
 Instalar no iPhone e testar as três coisas que o Expo Go nunca permitiu:
 link mágico do e-mail, deep link do convite, e a sessão sobrevivendo ao
@@ -405,10 +400,7 @@ existir conta no Google, que só é exigida na hora de enviar.
       | URL de suporte | `https://eng-toschi.github.io/RachaPila/` |
       | URL da Política de privacidade | `https://eng-toschi.github.io/RachaPila/privacidade.html` |
 
-- [ ] **`contato@rachapila.com.br` receber de verdade** — ver a seção
-      *E-mail* abaixo. É o risco pendente: as duas páginas no ar publicam
-      esse endereço, a Apple costuma testar o canal de suporte antes de
-      aprovar, e a LGPD exige que ele funcione.
+- [x] **`contato@rachapila.com.br` recebe e responde** (21/09/2026) — §5.
 - [ ] Capturas de tela **1284×2778** (o campo da ficha pede 6,5 pol.) — ver
       `LOJA.md`. É a resolução de um **iPhone 14 Pro Max**; se o aparelho na
       mão não for esse, use o simulador do Mac:

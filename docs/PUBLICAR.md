@@ -157,15 +157,21 @@ para CI. A chave é por time; uma da consultoria não serve.
 | | |
 |---|---|
 | Apple Team ID (Individual) | `48C8FNA4NN` |
+| ASC App ID | `6814317296` |
 | Provider ID | `129487094` |
 | Bundle ID | `app.rachapila.mobile` |
 | Projeto EAS | `16b03173-1765-4355-afa7-c4eb23576d71` |
 
-O Team ID está fixado no `eas.json` de propósito: com dois times no mesmo
-Apple ID, deixar a escolha para um menu interativo é convite a errar um dia
-com pressa. Falta ainda o `ascAppId` (o número do app em App Store Connect →
-Informações do app); com ele no perfil, o envio pula a etapa de conferir se o
-app existe.
+Team ID e ASC App ID estão fixados no `eas.json` de propósito. O primeiro
+porque, com dois times no mesmo Apple ID, deixar a escolha para um menu
+interativo é convite a errar um dia com pressa; o segundo porque dispensa a
+etapa de conferir se o app existe no App Store Connect. Com os dois no
+perfil, o envio inteiro cabe em:
+
+```
+eas build --profile production --platform ios
+eas submit --profile production --platform ios --latest
+```
 
 O `eas.json` já está com `appVersionSource: "remote"` e `autoIncrement` no
 perfil de produção: o número de build sobe sozinho a cada envio, que é a

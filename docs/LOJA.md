@@ -137,29 +137,62 @@ app, em Entrar → "Excluir minha conta").
 
 ---
 
-## 3. O que ainda falta
+## 2.8 Informações para revisão do app
 
-- [ ] **Hospedar `web/`** — qualquer URL pública serve. O caminho mais rápido
-      é o Cloudflare Pages: cria um projeto, arrasta a pasta `web/`, e ele
-      devolve um endereço `*.pages.dev` na hora, de graça, sem mexer em DNS.
-      Apontar para `rachapila.com.br` depois é um registro CNAME, sem trocar
-      os servidores de nome (e portanto sem risco para o e-mail do Resend).
-- [ ] **Fazer `contato@rachapila.com.br` receber de verdade.** As duas páginas
-      publicam esse endereço, a Apple costuma testar o canal de suporte, e a
-      LGPD exige que ele funcione. Hoje o domínio só envia (Resend), não recebe.
-- [ ] **Contas de desenvolvedor** (Apple US$ 99/ano, Google US$ 25 uma vez).
-      O caminho completo — qual Apple ID usar quando o atual está preso ao
-      time de um cliente, Individual x Organization, e a esteira da EAS —
-      está em `PUBLICAR.md`.
-- [ ] **Capturas de tela** — o campo da ficha pede o tamanho de 6,5 pol., e
-      aceita 1242×2688 ou **1284×2778**. O segundo é o que sai de um simulador
-      de **iPhone 14 Pro Max** — mire nele e não há conversão para fazer.
-      Boas candidatas: lista de despesas de uma viagem cheia, a divisão de uma
-      despesa com o valor por cabeça, a aba de saldos, o fechamento com Pix.
-- [ ] **Build e envio:** `eas build --profile production --platform ios` e
-      `--platform android`.
+Campo em **Distribuição → versão 1.0 → Informações da revisão do app**. É o
+que evita a reprovação mais boba de app com login: o revisor abre, encontra
+uma tela de entrada, não consegue passar dela e devolve como "não foi
+possível avaliar".
 
----
+No nosso caso a resposta é boa — o app inteiro funciona sem conta — mas isso
+precisa estar escrito, porque o revisor não vai adivinhar.
+
+**Notas (colar no campo "Notas"):**
+
+```
+Não é necessária conta para avaliar este app.
+
+Todas as funções principais — criar viagem, cadastrar participantes, lançar
+despesas em várias moedas, dividir, ver saldos e fechar as contas — funcionam
+sem login e sem internet. Basta abrir o app e criar uma viagem.
+
+O login existe apenas para compartilhar uma viagem com outras pessoas. Ele usa
+link mágico enviado por e-mail: na tela "Entrar", digite qualquer endereço de
+e-mail ao qual você tenha acesso e o link chegará em segundos.
+
+Exclusão de conta (diretriz 5.1.1(v)): em Entrar → "Excluir minha conta".
+Disponível dentro do app, sem precisar falar com o suporte.
+
+A permissão de localização é opcional e pedida apenas ao tocar em "Usar GPS"
+dentro do formulário de despesa. O app funciona normalmente se ela for negada.
+```
+
+Preencha também nome, sobrenome, e-mail e telefone de contato — é por onde a
+Apple liga se travar algo na revisão.
+
+## 2.9 Classificação etária
+
+Em **Informações do app → Classificação etária → Editar**. O app não tem
+violência, conteúdo sexual, jogo de azar, álcool nem terror: a resposta é
+"nenhum" ou a opção mais branda em todas as perguntas, e o resultado é **4+**.
+
+## 3. O que ainda falta no App Store Connect
+
+- [x] Privacidade do app — cinco tipos declarados e publicados (21/09/2026).
+- [x] URL da política de privacidade.
+- [ ] **Informações do app**: subtítulo, categorias, direitos autorais
+      (`2026 Fernando Toschi Maciel`) e classificação etária (§2.9).
+- [ ] **Versão 1.0**: texto promocional, descrição, palavras-chave (§1),
+      URL de suporte, capturas de tela e as notas de revisão (§2.8).
+- [ ] **Preços e disponibilidade**: gratuito. É aqui também que se desmarca a
+      União Europeia, se não quiser publicar endereço por causa do *trader
+      status* — ver `PUBLICAR.md` §1.
+- [ ] **Escolher o build** que o `eas submit` enviou, depois que a Apple
+      terminar de processar.
+- [ ] **Versão de lançamento**: "liberar automaticamente após aprovação" é o
+      caminho mais rápido. Só vale o manual se quiser soltar iOS e Android no
+      mesmo dia — e, com o teste fechado de 14 dias do Google, isso significa
+      segurar o iOS por duas semanas.
 
 ## 4. Riscos conhecidos de reprovação
 

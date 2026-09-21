@@ -1,0 +1,41 @@
+# Publica a pasta `web/` no GitHub Pages a cada mudança nela.
+#
+# Deliberadamente não se usa uma branch `gh-pages` com uma cópia dos
+# arquivos: uma das páginas é a política de privacidade, documento que a
+# Apple e a LGPD cobram, e duas cópias de um texto desses saem de sincronia
+# mais cedo ou mais tarde. Aqui a única fonte é `web/` na `main`.
+name: Publicar a página
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Uma publicação por vez, sem cancelar a que está em andamento: derrubar um
+# deploy pela metade deixaria o site fora do ar por nada.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - id: deploy
+        uses: actions/deploy-pages@v4

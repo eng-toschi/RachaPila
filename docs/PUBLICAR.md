@@ -200,8 +200,19 @@ Google só é necessária na hora de enviar. Vale rodar antes, porque é no
 primeiro build que aparecem os erros de configuração nativa, e descobrir isso
 com a fila da Apple já vencida é perder o dia.
 
-- [ ] Hospedar `web/` (Cloudflare Pages resolve arrastando a pasta) — as URLs
-      de suporte e privacidade são campos obrigatórios.
+- [ ] **Ligar o GitHub Pages** — o repositório é público, então sai de graça
+      e sem conta nova. O workflow `.github/workflows/pages.yml` já publica a
+      pasta `web/` a cada mudança nela; falta só apontar a fonte uma vez:
+
+      **Settings → Pages → Source: GitHub Actions.**
+
+      Depois disso o endereço aparece na própria tela de Pages, na forma
+      `https://eng-toschi.github.io/RachaPila/`. As URLs para o App Store
+      Connect são essa (suporte) e `.../privacidade.html` (privacidade).
+
+      Publicar direto de `web/` e não de uma branch com cópia é de propósito:
+      uma das páginas é a política de privacidade, e documento que a Apple e
+      a LGPD cobram não pode viver em duas versões.
 - [ ] `contato@rachapila.com.br` receber de verdade. Zoho Mail no plano
       gratuito resolve só com registros MX no Registro.br, sem trocar os
       servidores de nome — e portanto sem encostar no que o Resend criou.

@@ -176,6 +176,55 @@ Em **Informações do app → Classificação etária → Editar**. O app não t
 violência, conteúdo sexual, jogo de azar, álcool nem terror: a resposta é
 "nenhum" ou a opção mais branda em todas as perguntas, e o resultado é **4+**.
 
+## 2.10 TestFlight — informações de teste
+
+Campos de **TestFlight → Informações de teste**, exigidos antes de mandar um
+build para teste externo.
+
+> **Desmarque "Início de sessão obrigatório".** O app funciona inteiro sem
+> conta, e não existe usuário e senha — o login é por link no e-mail. Deixar
+> marcado faz a Apple esperar credenciais que não existem, e o Beta App
+> Review volta por isso.
+
+**E-mail para comentários:** `contato@rachapila.com.br`
+
+**Descrição da versão beta do app:**
+
+```
+O RachaPila divide as contas de uma viagem em grupo: cada um lança o que
+pagou, e no fim o app diz quem paga a quem.
+
+O que experimentar:
+
+1. Crie uma viagem e escolha a moeda do acerto. Se vocês forem gastar em
+outra moeda, acrescente-a também.
+
+2. Adicione as pessoas pelo nome. Ninguém precisa ter o app para entrar na
+divisão das contas.
+
+3. Lance algumas despesas variando quem pagou e entre quem dividiu — por
+cabeça, por valor exato, ou só entre algumas pessoas.
+
+4. Abra a aba de saldos e depois "Fechar a viagem": o app calcula o menor
+número de transferências para todo mundo zerar.
+
+5. Se alguém cadastrar uma chave Pix, o fechamento gera um código copia e
+cola com o valor já embutido.
+
+Não é preciso criar conta para nada disso. A conta só serve para compartilhar
+a viagem com outras pessoas, e entrar é por um link enviado ao e-mail — não
+há senha.
+
+O app funciona sem internet: dá para lançar despesas offline, e tudo se
+ajusta entre os celulares do grupo quando a conexão voltar.
+
+O que mais ajuda saber: se algum valor pareceu errado, se alguma tela
+confundiu, e se algo travou.
+```
+
+**Informações de contato:** nome, sobrenome, telefone e e-mail de verdade —
+é por onde a Apple liga se algo travar na revisão.
+
 ## 3. O que ainda falta no App Store Connect
 
 - [x] Privacidade do app — cinco tipos declarados e publicados (21/09/2026).

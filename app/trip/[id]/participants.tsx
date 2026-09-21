@@ -1,5 +1,15 @@
-import { useState } from 'react';
-import { Alert, Pressable, ScrollView, Share, TextInput, View } from 'react-native';
+import { useRef, useState } from 'react';
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  Share,
+  TextInput,
+  View,
+  type StyleProp,
+  type TextInputProps,
+  type ViewStyle,
+} from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { addParticipant, updateParticipant } from '@/commands';
@@ -261,42 +271,38 @@ export default function ParticipantsScreen() {
                       <Text variant="overline" tone="muted">
                         Nome
                       </Text>
-                      <View style={field(t.surface)}>
-                        <TextInput
-                          value={nameDraft}
-                          onChangeText={(text) => {
-                            setNameDraft(text);
-                            setEditError(undefined);
-                          }}
-                          placeholder="Como essa pessoa aparece na viagem"
-                          placeholderTextColor={t.textFaint}
-                          accessibilityLabel={`Nome de ${person.name}`}
-                          numberOfLines={1}
-                          style={{ fontSize: 15, color: t.text, padding: 0 }}
-                        />
-                      </View>
+                      <Field
+                        containerStyle={field(t.surface)}
+                        value={nameDraft}
+                        onChangeText={(text) => {
+                          setNameDraft(text);
+                          setEditError(undefined);
+                        }}
+                        placeholder="Como essa pessoa aparece na viagem"
+                        placeholderTextColor={t.textFaint}
+                        accessibilityLabel={`Nome de ${person.name}`}
+                        style={{ color: t.text }}
+                      />
                     </View>
 
                     <View style={{ gap: SPACING.xs }}>
                       <Text variant="overline" tone="muted">
                         Chave Pix
                       </Text>
-                      <View style={field(t.surface)}>
-                        <TextInput
-                          value={pixDraft}
-                          onChangeText={(text) => {
-                            setPixDraft(text);
-                            setEditError(undefined);
-                          }}
-                          placeholder="CPF, e-mail, telefone ou chave aleatória"
-                          placeholderTextColor={t.textFaint}
-                          autoCapitalize="none"
-                          autoCorrect={false}
-                          accessibilityLabel={`Chave Pix de ${person.name}`}
-                          numberOfLines={1}
-                          style={{ fontSize: 15, color: t.text, padding: 0 }}
-                        />
-                      </View>
+                      <Field
+                        containerStyle={field(t.surface)}
+                        value={pixDraft}
+                        onChangeText={(text) => {
+                          setPixDraft(text);
+                          setEditError(undefined);
+                        }}
+                        placeholder="CPF, e-mail, telefone ou chave aleatória"
+                        placeholderTextColor={t.textFaint}
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                        accessibilityLabel={`Chave Pix de ${person.name}`}
+                        style={{ color: t.text }}
+                      />
                       <Text variant="caption" tone="faint">
                         {person.pixKey === null
                           ? 'Serve para o grupo te pagar no fim da viagem. Dá para deixar em branco.'
@@ -368,22 +374,17 @@ export default function ParticipantsScreen() {
 
         <Card style={{ paddingVertical: SPACING.md }}>
           <Row>
-            {/* Altura no contêiner e `padding: 0` no campo: confiar no
-                `minHeight` do próprio TextInput deixava o texto descer até
-                encostar na borda do cartão, meio cortado. */}
-            <View style={{ flex: 1, height: MIN_TOUCH, justifyContent: 'center' }}>
-              <TextInput
-                value={draft}
-                onChangeText={setDraft}
-                onSubmitEditing={add}
-                returnKeyType="done"
-                placeholder="Adicionar alguém pelo nome"
-                placeholderTextColor={t.textFaint}
-                accessibilityLabel="Nome do participante"
-                numberOfLines={1}
-                style={{ fontSize: 15.5, color: t.text, padding: 0 }}
-              />
-            </View>
+            <Field
+              containerStyle={{ flex: 1 }}
+              value={draft}
+              onChangeText={setDraft}
+              onSubmitEditing={add}
+              returnKeyType="done"
+              placeholder="Adicionar alguém pelo nome"
+              placeholderTextColor={t.textFaint}
+              accessibilityLabel="Nome do participante"
+              style={{ fontSize: 15.5, color: t.text }}
+            />
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Adicionar participante"
@@ -393,6 +394,14 @@ export default function ParticipantsScreen() {
               <IconPlus size={18} color={t.accent} />
             </Pressable>
           </Row>
+          {/* Ter as duas coisas na mesma tela — adicionar pelo nome e convidar
+              por link — lê como redundância para quem chega agora. A diferença
+              é que uma serve para dividir a conta e a outra para dar acesso ao
+              app, e isso não estava dito em lugar nenhum. */}
+          <Text variant="caption" tone="faint" style={{ marginTop: SPACING.sm, lineHeight: 18 }}>
+            Quem entra pelo nome já divide despesas na hora, sem precisar ter o app. O convite
+            abaixo é só para quem também vai lançar gastos do próprio celular.
+          </Text>
         </Card>
 
         {session === null ? (
@@ -445,11 +454,33 @@ export default function ParticipantsScreen() {
  * duas plataformas.
  */
 function field(background: string) {
-  return {
-    height: MIN_TOUCH,
-    justifyContent: 'center' as const,
-    backgroundColor: background,
-    borderRadius: RADIUS.md,
-    paddingHorizontal: SPACING.md,
-  };
+  return { backgroundColor: background, borderRadius: RADIUS.md, paddingHorizontal: SPACING.md };
+}
+
+/**
+ * Campo de texto cuja área de toque é a caixa inteira.
+ *
+ * Um `TextInput` ocupa só a altura da própria letra — cerca de 20px. Numa
+ * caixa de 44px, exigida para o alvo mínimo de toque, sobram 24px mortos:
+ * tocar neles não abre o teclado, e o campo passa a impressão de estar
+ * quebrado. Foi exatamente o que aconteceu com "Adicionar alguém pelo nome".
+ *
+ * O `Pressable` em volta devolve esse toque ao campo. Ele é invisível para
+ * leitores de tela (`accessible={false}`) para que o foco vá ao `TextInput`,
+ * e não a um botão sem nome.
+ */
+function Field({
+  containerStyle,
+  ...input
+}: TextInputProps & { readonly containerStyle?: StyleProp<ViewStyle> }) {
+  const ref = useRef<TextInput>(null);
+  return (
+    <Pressable
+      accessible={false}
+      onPress={() => { ref.current?.focus(); }}
+      style={[{ height: MIN_TOUCH, justifyContent: 'center' }, containerStyle]}
+    >
+      <TextInput ref={ref} numberOfLines={1} {...input} style={[{ fontSize: 15, padding: 0 }, input.style]} />
+    </Pressable>
+  );
 }

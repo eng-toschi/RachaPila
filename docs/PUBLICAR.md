@@ -365,11 +365,24 @@ Adicionar outro endereço**.
 | Senha | a API key do Resend |
 
 O Gmail manda um código de confirmação para `contato@`, que o ImprovMX
-entrega na sua caixa — o ciclo se fecha sozinho.
+entrega na sua caixa — o ciclo se fecha sozinho. Por isso este é o **último**
+passo: sem a recepção funcionando, o código não chega a lugar nenhum.
 
-É o mesmo Resend que entrega os links mágicos, então não há conta nem
-credencial nova. O volume de resposta a suporte é desprezível perto do limite
-do plano gratuito.
+É o mesmo Resend que entrega os links mágicos, então não há serviço novo. Mas
+**gere uma API key separada** (`gmail-send-as`, permissão *Sending access*,
+restrita ao domínio) em vez de reaproveitar a do Supabase: no dia em que uma
+precisar ser revogada, a outra continua de pé — e a que entrega o link mágico
+é a que não pode cair.
+
+Logo abaixo, na mesma aba, marque **"Responder do mesmo endereço para o qual
+a mensagem foi enviada"**. É o que faz a resposta a quem escreveu para
+`contato@` sair como `contato@` sem ninguém precisar lembrar de trocar o
+remetente — que é justamente como o endereço pessoal escaparia.
+
+Para conferir que fechou: mande uma mensagem de outro endereço para
+`contato@` e veja chegar; depois responda a partir do Gmail escolhendo
+`contato@` como remetente, e confirme que ela sai como
+`RachaPila <contato@rachapila.com.br>`.
 
 ### Mais endereços, se um dia precisar
 

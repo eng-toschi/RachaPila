@@ -200,22 +200,25 @@ Google só é necessária na hora de enviar. Vale rodar antes, porque é no
 primeiro build que aparecem os erros de configuração nativa, e descobrir isso
 com a fila da Apple já vencida é perder o dia.
 
-- [ ] **Ligar o GitHub Pages** — o repositório é público, então sai de graça
-      e sem conta nova. O workflow `.github/workflows/pages.yml` já publica a
-      pasta `web/` a cada mudança nela; falta só apontar a fonte uma vez:
+- [x] **GitHub Pages ligado** (21/09/2026). O workflow
+      `.github/workflows/pages.yml` publica `web/` a cada mudança nela, então
+      a página no ar é sempre a do repositório — nunca uma cópia velha.
 
-      **Settings → Pages → Source: GitHub Actions.**
+      | Campo do App Store Connect | URL |
+      |---|---|
+      | URL de suporte | `https://eng-toschi.github.io/RachaPila/` |
+      | URL da Política de privacidade | `https://eng-toschi.github.io/RachaPila/privacidade.html` |
 
-      Depois disso o endereço aparece na própria tela de Pages, na forma
-      `https://eng-toschi.github.io/RachaPila/`. As URLs para o App Store
-      Connect são essa (suporte) e `.../privacidade.html` (privacidade).
+- [ ] **`contato@rachapila.com.br` receber de verdade — agora é o risco
+      maior.** As duas páginas no ar publicam esse endereço, a Apple costuma
+      testar o canal de suporte antes de aprovar, e a LGPD exige que ele
+      funcione. Hoje o domínio só envia, via Resend.
 
-      Publicar direto de `web/` e não de uma branch com cópia é de propósito:
-      uma das páginas é a política de privacidade, e documento que a Apple e
-      a LGPD cobram não pode viver em duas versões.
-- [ ] `contato@rachapila.com.br` receber de verdade. Zoho Mail no plano
-      gratuito resolve só com registros MX no Registro.br, sem trocar os
-      servidores de nome — e portanto sem encostar no que o Resend criou.
+      Zoho Mail no plano gratuito resolve com registros MX no Registro.br,
+      sem trocar os servidores de nome — e portanto sem encostar no que o
+      Resend criou. Enquanto isso não acontece, a alternativa honesta é
+      trocar o endereço nas páginas por um que já receba: uma linha em cada
+      arquivo de `web/`, e o próprio workflow republica.
 - [x] `eas init` e o primeiro build de Android. Feito em 20/09/2026: projeto
       `@fernando.toschi/rachapila`, keystore gerada e guardada na EAS,
       `versionCode` passa a ser controlado pelo servidor. O valor do build não

@@ -59,8 +59,8 @@ Divida os gastos da viagem sem planilha. Funciona sem internet, usa a cotação 
 dividir conta,racha,viagem,despesas,amigos,pix,grupo,câmbio,IOF,gastos,rateio
 ```
 
-**URL de suporte:** a página hospedada (ver §3)
-**URL de privacidade:** a mesma página + `/privacidade.html`
+**URL de suporte:** `https://eng-toschi.github.io/RachaPila/`
+**URL de privacidade:** `https://eng-toschi.github.io/RachaPila/privacidade.html`
 
 **Categoria:** Finanças (primária) · Viagens (secundária)
 **Classificação etária:** 4+ (não há conteúdo restrito)

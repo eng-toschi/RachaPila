@@ -5,6 +5,61 @@ estão em `LOJA.md`.
 
 ---
 
+## Ordem de execução
+
+Muita coisa correu em paralelo e é fácil perder o fio. Esta é a ordem, e o
+princípio que a define: **o que tem espera embutida começa primeiro**, porque
+relógio parado não anda enquanto se faz outra coisa.
+
+### Já feito (21/09/2026)
+
+Inscrição Apple Individual aprovada · app criado no App Store Connect ·
+build de iOS compilado, enviado e processado (está no TestFlight) · build de
+Android compilado · site no ar pelo GitHub Pages · privacidade do app
+declarada e publicada · `eas.json` fechado com Team ID e ASC App ID.
+
+### Etapa 0 — começar agora, porque são esperas
+
+| | Espera | Por quê agora |
+|---|---|---|
+| **Criar a conta do Google Play** (US$ 25) | dias + **14 dias de teste fechado com 12 pessoas** | é o relógio mais longo do projeto e ele só começa depois da conta aprovada |
+| **Registros MX do `contato@`** | horas de propagação de DNS | a Apple costuma testar o canal de suporte antes de aprovar |
+
+Nenhuma das duas atrapalha as etapas seguintes. Só disparar e seguir.
+
+### Etapa 1 — validar o app no TestFlight
+
+Instalar no iPhone e testar as três coisas que o Expo Go nunca permitiu:
+link mágico do e-mail, deep link do convite, e a sessão sobrevivendo ao
+fechar e reabrir.
+
+**Vem antes da ficha de propósito:** se algo estiver quebrado, o conserto
+gera build novo — e capturas de tela e textos feitos antes teriam de ser
+refeitos.
+
+### Etapa 2 — capturas de tela
+
+Com o app instalado e funcionando, tirar as quatro. Detalhes de tamanho e
+quais telas escolher em `LOJA.md` §3.
+
+### Etapa 3 — preencher a ficha de uma vez só
+
+Tudo em `LOJA.md`: textos (§1), notas de revisão (§2.8), classificação
+etária (§2.9), e o que falta listado em §3. Uma sentada, com o arquivo
+aberto ao lado.
+
+### Etapa 4 — conferir e enviar
+
+Escolher o build, definir preço e países, e **Adicionar para revisão**.
+
+### Depois
+
+Android: subir o `.aab`, montar o teste fechado e esperar os 14 dias. E, se
+quiser trocar o nome do vendedor, o caminho está em §1 — não precisa
+atrasar nada disto.
+
+---
+
 > **Situação resolvida (set/2026):** o Apple ID `eng.toschi@icloud.com` é
 > pessoal e tem papel de **Admin** no time "Goawake real estate ltda" — não é
 > o titular. Logo a inscrição própria estava livre: **mesmo Apple ID,

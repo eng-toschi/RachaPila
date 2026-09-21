@@ -27,17 +27,19 @@ declarada e publicada · `eas.json` fechado com Team ID e ASC App ID.
 saem como `RachaPila <contato@rachapila.com.br>` pelo SMTP do Resend, e o
 endereço pessoal segue sendo o padrão para tudo o mais. Detalhes em §5.
 
-### Etapa 1 — validar o app no TestFlight ← *aqui*
+### Etapa 1 — TestFlight ✅ (21/09/2026)
 
-Instalar no iPhone e testar as três coisas que o Expo Go nunca permitiu:
-link mágico do e-mail, deep link do convite, e a sessão sobrevivendo ao
-fechar e reabrir.
+Link mágico, deep link e persistência de sessão: os três passaram no build
+de verdade. O e-mail caiu no lixo eletrônico do iCloud — anotado em §6, com
+a correção.
 
-**Vem antes da ficha de propósito:** se algo estiver quebrado, o conserto
-gera build novo — e capturas de tela e textos feitos antes teriam de ser
-refeitos.
+A exploração livre depois dos testes rendeu mais que os testes: "adicionar
+alguém pelo nome" não respondia ao toque, defeito que 293 testes
+automatizados não pegariam, porque é de área de toque e não de lógica.
+Corrigido no b43. **Vale repetir essa exploração a cada build** — foi mais
+barata que qualquer das etapas anteriores e achou o único bug real do dia.
 
-### Etapa 2 — capturas de tela
+### Etapa 2 — capturas de tela ← *aqui*
 
 Com o app instalado e funcionando, tirar as quatro. Detalhes de tamanho e
 quais telas escolher em `LOJA.md` §3.

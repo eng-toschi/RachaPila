@@ -180,8 +180,10 @@ violência, conteúdo sexual, jogo de azar, álcool nem terror: a resposta é
 
 - [x] Privacidade do app — cinco tipos declarados e publicados (21/09/2026).
 - [x] URL da política de privacidade.
-- [ ] **Informações do app**: subtítulo, categorias, direitos autorais
-      (`2026 Fernando Toschi Maciel`) e classificação etária (§2.9).
+- [ ] **Informações do app**: subtítulo, categorias, direitos autorais e
+      classificação etária (§2.9). Em direitos autorais use `2026 EngToschi`:
+      o campo é texto livre, ao contrário do nome do vendedor, que em conta
+      Individual é o nome civil (ver `PUBLICAR.md` §1 para trocá-lo).
 - [ ] **Versão 1.0**: texto promocional, descrição, palavras-chave (§1),
       URL de suporte, capturas de tela e as notas de revisão (§2.8).
 - [ ] **Preços e disponibilidade**: gratuito. É aqui também que se desmarca a

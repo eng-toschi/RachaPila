@@ -55,7 +55,28 @@ Organization depois, sem perder avaliações nem usuários. O RachaPila não usa
 nada do que bloqueia transferência (iCloud, Apple Pay, Sign in with Apple).
 
 O único preço real do Individual é o seu nome civil aparecer como vendedor
-na ficha do app. Se isso incomodar, aí sim vale esperar o D-U-N-S.
+na ficha do app.
+
+### Trocar o nome exibido por "EngToschi"
+
+Não dá para só digitar outro: em conta Individual o vendedor é você, e a
+Apple exibe o nome civil. Três saídas, em ordem de esforço:
+
+1. **Pedir um DBA** (nome fantasia) ao Apple Developer Support. A Apple
+   concede a pessoa física desde que se **comprove direito legal sobre o
+   nome** — no Brasil, CNPJ com nome fantasia ou marca no INPI. Sem
+   documento, é negado. Custa um chamado; vale tentar se o documento existir.
+2. **Virar conta Organization e transferir o app.** CNPJ + D-U-N-S → conta
+   nova → *App Transfer*, que preserva avaliações, usuários e histórico. No
+   Brasil o atalho é o **MEI**: abre online, de graça, no mesmo dia, e já dá
+   CNPJ com nome fantasia; o D-U-N-S depois leva de uma a duas semanas.
+3. **Lançar assim e resolver depois** — o que se recomenda. O nome grande na
+   ficha é *RachaPila*; o do vendedor aparece pequeno, embaixo. Segurar o
+   lançamento duas semanas por uma linha de texto sai caro, e o caminho 2
+   continua aberto a qualquer momento.
+
+Enquanto isso, o campo **Direitos autorais** (Informações do app) é texto
+livre e não tem essa amarra: `2026 EngToschi` em vez do nome civil.
 
 ### Duas burocracias que você *não* precisa enfrentar
 

@@ -5,13 +5,15 @@
  * usam `fontVariant: tabular-nums` para os dígitos não dançarem quando a lista
  * rola (§11).
  */
-import type { ReactNode } from 'react';
+import { forwardRef, useRef, type ReactNode } from 'react';
 import {
   Pressable,
   StyleSheet,
   Text as RNText,
+  TextInput,
   View,
   type StyleProp,
+  type TextInputProps,
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
@@ -497,6 +499,47 @@ export function EmptyState({ title, hint, action }: { title: string; hint: strin
     </View>
   );
 }
+
+/**
+ * Campo de texto: caixa de altura fixa, campo preenchendo ela inteira.
+ *
+ * Resolve duas falhas que apareceram juntas no aparelho e têm a mesma causa —
+ * a caixa do `TextInput` não bate com o que a fonte precisa:
+ *
+ * 1. **Texto cortado.** Um `minHeight` apertado com fonte própria corta as
+ *    letras em cima e embaixo. Aqui a altura mora no contêiner, com folga, e
+ *    o campo a preenche — sobra espaço para qualquer métrica de fonte.
+ * 2. **Toque morto.** Um `TextInput` com altura intrínseca ocupa só a altura
+ *    da letra; numa caixa de 44px sobram ~24px onde tocar não abre o teclado,
+ *    e o campo parece quebrado. O `Pressable` em volta devolve esse toque, e
+ *    é invisível para leitores de tela para que o foco vá ao campo.
+ *
+ * `containerStyle` ajusta a caixa (altura, fundo, cantos); `style` vai para o
+ * campo. Fonte grande pede caixa maior: 20px de display quer uns 56.
+ */
+export const Field = forwardRef<TextInput, TextInputProps & { readonly containerStyle?: StyleProp<ViewStyle> }>(
+  function Field({ containerStyle, ...input }, forwarded) {
+    const own = useRef<TextInput>(null);
+    return (
+      <Pressable
+        accessible={false}
+        onPress={() => { own.current?.focus(); }}
+        style={[{ height: MIN_TOUCH, justifyContent: 'center' }, containerStyle]}
+      >
+        <TextInput
+          ref={(node) => {
+            own.current = node;
+            if (typeof forwarded === 'function') forwarded(node);
+            else if (forwarded !== null) forwarded.current = node;
+          }}
+          numberOfLines={1}
+          {...input}
+          style={[{ flex: 1, fontSize: 15, padding: 0 }, input.style]}
+        />
+      </Pressable>
+    );
+  },
+);
 
 export function Divider() {
   const t = useTheme();

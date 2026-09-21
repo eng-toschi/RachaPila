@@ -1,15 +1,5 @@
-import { useRef, useState } from 'react';
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  Share,
-  TextInput,
-  View,
-  type StyleProp,
-  type TextInputProps,
-  type ViewStyle,
-} from 'react-native';
+import { useState } from 'react';
+import { Alert, Pressable, ScrollView, Share, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { addParticipant, updateParticipant } from '@/commands';
@@ -18,10 +8,10 @@ import { maskPixKey, parsePixKey } from '@/domain/pix';
 import { createInvite, inviteUrl } from '@/services/invites';
 import { useAuth } from '@/state/auth';
 import { useDatabase, useMutate, useQuery } from '@/state/database';
-import { Avatar, Badge, Button, Card, Divider, Row, Text } from '@/ui/components';
+import { Avatar, Badge, Button, Card, Divider, Field, Row, Text } from '@/ui/components';
 import { IconBack, IconCheck, IconChevron, IconInfo, IconPlus } from '@/ui/icons';
 import { useTheme } from '@/ui/theme';
-import { MIN_TOUCH, RADIUS, SPACING } from '@/ui/tokens';
+import { RADIUS, SPACING } from '@/ui/tokens';
 
 export default function ParticipantsScreen() {
   const t = useTheme();
@@ -457,30 +447,3 @@ function field(background: string) {
   return { backgroundColor: background, borderRadius: RADIUS.md, paddingHorizontal: SPACING.md };
 }
 
-/**
- * Campo de texto cuja área de toque é a caixa inteira.
- *
- * Um `TextInput` ocupa só a altura da própria letra — cerca de 20px. Numa
- * caixa de 44px, exigida para o alvo mínimo de toque, sobram 24px mortos:
- * tocar neles não abre o teclado, e o campo passa a impressão de estar
- * quebrado. Foi exatamente o que aconteceu com "Adicionar alguém pelo nome".
- *
- * O `Pressable` em volta devolve esse toque ao campo. Ele é invisível para
- * leitores de tela (`accessible={false}`) para que o foco vá ao `TextInput`,
- * e não a um botão sem nome.
- */
-function Field({
-  containerStyle,
-  ...input
-}: TextInputProps & { readonly containerStyle?: StyleProp<ViewStyle> }) {
-  const ref = useRef<TextInput>(null);
-  return (
-    <Pressable
-      accessible={false}
-      onPress={() => { ref.current?.focus(); }}
-      style={[{ height: MIN_TOUCH, justifyContent: 'center' }, containerStyle]}
-    >
-      <TextInput ref={ref} numberOfLines={1} {...input} style={[{ fontSize: 15, padding: 0 }, input.style]} />
-    </Pressable>
-  );
-}

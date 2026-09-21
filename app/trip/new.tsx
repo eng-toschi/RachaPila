@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { addParticipant, createTrip, setTripCurrencies } from '@/commands';
@@ -7,7 +7,7 @@ import { localActorId } from '@/db/repositories';
 import { CurrencyPicker } from '@/features/expenses/CurrencyPicker';
 import { useAuth } from '@/state/auth';
 import { useMutate } from '@/state/database';
-import { Avatar, Button, Card, Chip, Divider, Row, Text } from '@/ui/components';
+import { Avatar, Button, Card, Chip, Divider, Field, Row, Text } from '@/ui/components';
 import { IconPlus, IconTrash } from '@/ui/icons';
 import { useTheme } from '@/ui/theme';
 import { FONT, RADIUS, SPACING } from '@/ui/tokens';
@@ -77,12 +77,16 @@ export default function NewTripScreen() {
         </Row>
 
         <Card>
-          <TextInput
+          {/* Caixa de 56 para uma fonte de display de 20: o `minHeight: 34`
+              que havia aqui era menor do que a fonte precisa desenhar, e
+              cortava as letras em cima e embaixo. */}
+          <Field
+            containerStyle={{ height: 56 }}
             value={name}
             onChangeText={setName}
             placeholder="Para onde vocês vão?"
             placeholderTextColor={t.textFaint}
-            style={{ fontSize: 20, letterSpacing: -0.2, fontFamily: FONT.display, color: t.text, minHeight: 34 }}
+            style={{ fontSize: 20, letterSpacing: -0.2, fontFamily: FONT.display, color: t.text }}
             accessibilityLabel="Nome da viagem"
             autoFocus
           />
@@ -156,14 +160,15 @@ export default function NewTripScreen() {
 
             <Divider />
             <Row style={{ paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm }}>
-              <TextInput
+              <Field
+                containerStyle={{ flex: 1 }}
                 value={draft}
                 onChangeText={setDraft}
                 onSubmitEditing={addPerson}
                 returnKeyType="done"
                 placeholder="Adicionar pelo nome"
                 placeholderTextColor={t.textFaint}
-                style={{ flex: 1, fontSize: 15.5, color: t.text, minHeight: 44 }}
+                style={{ fontSize: 15.5, color: t.text }}
                 accessibilityLabel="Nome do participante"
               />
               <Pressable

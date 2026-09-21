@@ -88,6 +88,12 @@ Apple mexeu nessa regra mais de uma vez.
    identidade sai pelo próprio aparelho, e às vezes aprova no mesmo dia.
    O iPhone precisa estar logado com o Apple ID certo.
 3. Aceitar o contrato de apps gratuitos em App Store Connect → Business.
+
+   > São **dois sites diferentes**, e é fácil procurar um dentro do outro:
+   > `developer.apple.com` é a conta de desenvolvedor (assinatura, membros,
+   > certificados, identificadores); `appstoreconnect.apple.com` são os apps
+   > (ficha da loja, builds, TestFlight, preços, envio para revisão). O
+   > segundo também está no menu lateral do primeiro.
 4. Criar o registro do app em App Store Connect → Apps → **+** — **confira o
    seletor de time antes de clicar**, que agora são dois e criar o RachaPila
    dentro da Goawake dá um trabalho enorme para desfazer:

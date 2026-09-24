@@ -1,7 +1,9 @@
 # Publicar nas lojas — textos prontos e checklist
 
 Tudo que dá para adiantar antes das contas saírem. O que está aqui é para
-copiar e colar na App Store Connect e no Google Play Console.
+copiar e colar na App Store Connect e no Google Play Console. O caminho das
+contas em si está em `PUBLICAR.md`; o mapa dos serviços, em
+`INFRAESTRUTURA.md`.
 
 ---
 

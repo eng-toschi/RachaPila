@@ -1,7 +1,8 @@
 # Publicar: conta Apple, conta Google e a esteira de build
 
 O que está aqui é a parte de *contas e configuração*. Os textos da listagem
-estão em `LOJA.md`.
+estão em `LOJA.md`, e o mapa de todos os serviços — quem fala com quem, o que
+foi configurado em cada um e por quê — em `INFRAESTRUTURA.md`.
 
 ---
 

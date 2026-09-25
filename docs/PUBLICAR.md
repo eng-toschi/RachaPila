@@ -40,6 +40,15 @@ automatizados não pegariam, porque é de área de toque e não de lógica.
 Corrigido no b43. **Vale repetir essa exploração a cada build** — foi mais
 barata que qualquer das etapas anteriores e achou o único bug real do dia.
 
+### TestFlight externo aprovado (25/09/2026)
+
+Beta App Review passou, grupo "Teste Família" liberado. Os próximos builds
+de **1.0** vão para os testadores sem nova revisão — a espera foi uma vez só.
+
+Vale gastar um dia nisso antes de enviar para a loja: as duas últimas
+rodadas de uso livre acharam, cada uma, um bug real que os 293 testes
+automatizados não pegam, porque são de toque e de renderização.
+
 ### Etapa 2 — capturas de tela ← *aqui*
 
 Com o app instalado e funcionando, tirar as quatro. Detalhes de tamanho e

@@ -431,25 +431,40 @@ existir conta no Google, que só é exigida na hora de enviar.
 - [ ] **Traduzir o e-mail de entrada.** O modelo padrão do Supabase chega em
       inglês — assunto *"Your sign-in link"* —, e é o **primeiro contato** de
       quem se cadastra num app inteiro em português. Em
-      **Supabase → Authentication → Email Templates → Magic Link**:
+      **Authentication → Emails → Magic Link**:
 
       Assunto:
       ```
       Seu link de entrada no RachaPila
       ```
 
-      Corpo:
+      Corpo (HTML com estilo embutido: cliente de e-mail descarta `<style>`,
+      então cada regra vai no próprio elemento):
       ```html
-      <h2>Entrar no RachaPila</h2>
-      <p>Toque no link abaixo para entrar. Ele vale por pouco tempo e só
-      funciona uma vez.</p>
-      <p><a href="{{ .ConfirmationURL }}">Entrar no RachaPila</a></p>
-      <p>Se não foi você que pediu, pode ignorar esta mensagem — nada
-      acontece.</p>
+      <div style="font-family:-apple-system,'Segoe UI',Roboto,sans-serif;color:#1F1B16;max-width:480px">
+        <h2 style="font-size:22px;margin:0 0 12px">Entrar no RachaPila</h2>
+        <p style="font-size:16px;line-height:1.6;margin:0 0 24px">
+          Toque no botão abaixo para entrar. O link vale por pouco tempo e só
+          funciona uma vez.
+        </p>
+        <p style="margin:0 0 24px">
+          <a href="{{ .ConfirmationURL }}"
+             style="display:inline-block;background:#6D4AFF;color:#ffffff;
+                    text-decoration:none;font-weight:600;font-size:16px;
+                    border-radius:999px;padding:14px 26px">Entrar no RachaPila</a>
+        </p>
+        <p style="font-size:14px;line-height:1.6;color:#7A7168;margin:0 0 8px">
+          Abra o link no mesmo celular onde o app está instalado — é isso que
+          devolve a sessão para o app certo.
+        </p>
+        <p style="font-size:14px;line-height:1.6;color:#7A7168;margin:0">
+          Se não foi você que pediu, pode ignorar esta mensagem. Nada acontece.
+        </p>
+      </div>
       ```
 
-      Abra o link **no mesmo aparelho** onde o app está instalado: é o que faz
-      o `rachapila://` devolver a sessão para o app certo.
+      `{{ .ConfirmationURL }}` é a variável do Supabase e precisa ficar
+      exatamente assim, com os espaços dentro das chaves.
 
 - [ ] Capturas de tela **1284×2778** (o campo da ficha pede 6,5 pol.). São
       só tamanhos de Max/Plus: um **iPhone Pro** dá 1179×2556 ou 1206×2622 e

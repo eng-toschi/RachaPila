@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { APP_BUILD, APP_NAME, APP_VERSION } from '@/config/app';
 import { deleteAccount } from '@/services/account';
 import { useAuth } from '@/state/auth';
 import { useDatabase } from '@/state/database';
@@ -293,6 +294,20 @@ export default function LoginScreen() {
             </Text>
           </Pressable>
         )}
+
+        {/*
+          A marca de versão saiu da tela inicial e veio parar aqui.
+          Na home ela resolvia um problema real — saber num segundo se o
+          aparelho roda código velho —, mas quem instalar pela loja veria
+          "b45" sem fazer ideia do que é, e não dá para escondê-la só na
+          loja: o binário do TestFlight e o da App Store são o mesmo.
+
+          Aqui continua a um toque de distância para quem testa, e fora do
+          caminho de quem só quer dividir a conta do jantar.
+        */}
+        <Text variant="micro" tone="faint" style={{ textAlign: 'center' }}>
+          {APP_NAME} {APP_VERSION} · {APP_BUILD}
+        </Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>

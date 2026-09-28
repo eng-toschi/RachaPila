@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { APP_BUILD } from '@/config/app';
 import { deleteTrip } from '@/commands';
 import { computeBalances, expenseInBase, outstandingCents } from '@/domain/balance';
 import { formatMoney } from '@/domain/money';
@@ -151,7 +150,7 @@ export default function TripsScreen() {
         <Row style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING.xs }}>
           <View style={{ gap: 2, flex: 1 }}>
             <Text variant="label" tone="muted">
-              Suas contas de viagem · {APP_BUILD}
+              Suas contas de viagem
             </Text>
             <Text variant="display">Minhas viagens</Text>
           </View>

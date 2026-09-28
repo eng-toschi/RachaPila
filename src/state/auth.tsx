@@ -7,6 +7,7 @@
  * SQLite local nunca precisou, por isso o `DatabaseProvider` não tem.
  */
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { AppState } from 'react-native';
 import * as Linking from 'expo-linking';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/services/supabase';
@@ -37,6 +38,32 @@ const AuthContext = createContext<AuthStore | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+
+  /**
+   * Religa a renovação do token a cada volta para o primeiro plano.
+   *
+   * `autoRefreshToken: true` no cliente só mantém um timer enquanto o
+   * JavaScript está rodando. Em app de celular o JavaScript para quando o app
+   * vai para segundo plano, e o Supabase **não** retoma sozinho ao voltar —
+   * é preciso chamar `startAutoRefresh` à mão. Sem isso, passada a validade
+   * do access token (uma hora), a sessão simplesmente morre, e a pessoa é
+   * jogada de volta para a tela de entrada sem nenhuma explicação.
+   *
+   * Foi o que apareceu no teste com a família: "perdeu login em pouco tempo".
+   */
+  useEffect(() => {
+    if (AppState.currentState === 'active') void supabase.auth.startAutoRefresh();
+
+    const subscription = AppState.addEventListener('change', (next) => {
+      if (next === 'active') void supabase.auth.startAutoRefresh();
+      else void supabase.auth.stopAutoRefresh();
+    });
+
+    return () => {
+      subscription.remove();
+      void supabase.auth.stopAutoRefresh();
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;

@@ -7,7 +7,16 @@
  * login antes de entregar valor").
  */
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  TextInput,
+  View,
+} from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { deleteAccount } from '@/services/account';
@@ -95,16 +104,33 @@ export default function LoginScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
-      <View
-        style={{
-          paddingTop: insets.top + SPACING.lg,
-          paddingHorizontal: SPACING.xl,
-          paddingBottom: insets.bottom + SPACING.xl,
-          flex: 1,
-          justifyContent: 'center',
-          gap: SPACING.xl,
-        }}
+      {/*
+        Sem isto o teclado subia por cima do campo: a tela era um `View`
+        centralizado e fixo, então o conteúdo continuava no meio da tela —
+        atrás do teclado — e não havia como rolar até ele. Apareceu na hora de
+        colar o código do convite, que é justamente quando o campo precisa
+        estar visível para conferir o que se colou.
+
+        `flexGrow: 1` com `justifyContent: 'center'` mantém o conteúdo
+        centralizado enquanto couber, e libera a rolagem quando não couber.
+      */}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
+        <ScrollView
+          contentContainerStyle={{
+            paddingTop: insets.top + SPACING.lg,
+            paddingHorizontal: SPACING.xl,
+            paddingBottom: insets.bottom + SPACING.xl,
+            flexGrow: 1,
+            justifyContent: 'center',
+            gap: SPACING.xl,
+          }}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+          showsVerticalScrollIndicator={false}
+        >
         <Row style={{ justifyContent: 'flex-end', position: 'absolute', top: insets.top + SPACING.lg, right: SPACING.xl }}>
           <Pressable accessibilityRole="button" onPress={() => { router.back(); }} hitSlop={10}>
             <Text variant="label" tone="muted">
@@ -221,7 +247,7 @@ export default function LoginScreen() {
                 ) : null}
 
                 <Button
-                  label={status === 'sending' ? 'Enviando…' : 'Enviar link mágico'}
+                  label={status === 'sending' ? 'Enviando…' : 'Receber link por e-mail'}
                   onPress={send}
                   disabled={!validEmail || status === 'sending'}
                 />
@@ -267,7 +293,8 @@ export default function LoginScreen() {
             </Text>
           </Pressable>
         )}
-      </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }

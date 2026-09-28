@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Pressable, ScrollView, View, type TextInput } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { addParticipant, createTrip, setTripCurrencies } from '@/commands';
@@ -24,6 +24,8 @@ export default function NewTripScreen() {
   const [picking, setPicking] = useState<'base' | 'other' | undefined>(undefined);
   const [people, setPeople] = useState<string[]>([]);
   const [draft, setDraft] = useState('');
+  const campoNome = useRef<TextInput>(null);
+  const vazio = draft.trim() === '';
 
   const addPerson = (): void => {
     const trimmed = draft.trim();
@@ -161,6 +163,7 @@ export default function NewTripScreen() {
             <Divider />
             <Row style={{ paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm }}>
               <Field
+                ref={campoNome}
                 containerStyle={{ flex: 1 }}
                 value={draft}
                 onChangeText={setDraft}
@@ -171,14 +174,29 @@ export default function NewTripScreen() {
                 style={{ fontSize: 15.5, color: t.text }}
                 accessibilityLabel="Nome do participante"
               />
+              {/*
+                O `+` apagado quando não há texto, e sólido quando há, é o que
+                distingue "ainda não dá" de "agora dá". Antes ele parecia um
+                botão de abrir alguma coisa: as pessoas tocavam esperando um
+                formulário, nada acontecia, e elas não descobriam que o nome
+                se digita ali do lado. Tocar vazio agora leva o foco ao campo,
+                que é a única resposta útil para quem entendeu errado.
+              */}
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Adicionar participante"
-                onPress={addPerson}
+                accessibilityLabel={vazio ? 'Digite o nome antes de adicionar' : `Adicionar ${draft.trim()}`}
+                onPress={() => {
+                  if (vazio) campoNome.current?.focus();
+                  else addPerson();
+                }}
                 hitSlop={10}
-                style={{ backgroundColor: t.accentSoft, borderRadius: RADIUS.pill, padding: 8 }}
+                style={{
+                  backgroundColor: vazio ? t.surfaceAlt : t.accent,
+                  borderRadius: RADIUS.pill,
+                  padding: 9,
+                }}
               >
-                <IconPlus size={18} color={t.accent} />
+                <IconPlus size={18} color={vazio ? t.textFaint : t.onAccent} />
               </Pressable>
             </Row>
           </Card>

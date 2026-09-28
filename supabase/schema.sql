@@ -355,9 +355,17 @@ begin
 
   -- Convite direcionado: vincula ao fantasma e devolve o id dele, para o
   -- app saber "você é este participante" sem uma segunda pergunta.
+  --
+  -- O `lamport + 1` não é detalhe: é ele que faz a novidade existir para os
+  -- outros aparelhos. Sem isso, a linha muda no banco mas continua na mesma
+  -- versão, e a sincronização — que compara `(lamport, actor_id)` — conclui
+  -- "nada mudou". Quem convidou nunca fica sabendo que a pessoa entrou, e
+  -- continua vendo um fantasma na lista.
   if invite.participant_id is not null then
     update public.participants
-    set user_id = auth.uid()
+    set user_id = auth.uid(),
+        lamport = lamport + 1,
+        updated_at = now()
     where id = invite.participant_id and user_id is null and merged_into is null;
   end if;
 
@@ -435,7 +443,13 @@ begin
     (p_id, p_trip_id, p_display_name, p_user_id, p_avatar_seed, p_email, p_pix_key, p_pix_key_kind,
      p_pix_name, p_pix_city, p_merged_into, p_archived_at, p_deleted_at, p_lamport, p_actor_id, p_updated_at)
   on conflict (id) do update set
-    display_name = excluded.display_name, user_id = excluded.user_id, avatar_seed = excluded.avatar_seed,
+    display_name = excluded.display_name,
+    -- `coalesce` e não `excluded.user_id`: quem vincula é o servidor, no
+    -- aceite do convite, e um aparelho que ainda não puxou essa novidade tem
+    -- `null` aqui. Sem o coalesce, a primeira edição local desse participante
+    -- empurra o `null` por cima e desfaz o cadastro de quem entrou.
+    user_id = coalesce(public.participants.user_id, excluded.user_id),
+    avatar_seed = excluded.avatar_seed,
     email = excluded.email, pix_key = excluded.pix_key, pix_key_kind = excluded.pix_key_kind,
     pix_name = excluded.pix_name, pix_city = excluded.pix_city, merged_into = excluded.merged_into,
     archived_at = excluded.archived_at, deleted_at = excluded.deleted_at, lamport = excluded.lamport,

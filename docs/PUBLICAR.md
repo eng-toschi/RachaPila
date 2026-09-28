@@ -413,20 +413,20 @@ existir conta no Google, que só é exigida na hora de enviar.
       | URL da Política de privacidade | `https://eng-toschi.github.io/RachaPila/privacidade.html` |
 
 - [x] **`contato@rachapila.com.br` recebe e responde** (21/09/2026) — §5.
-- [x] **Remetente do e-mail de entrada trocado para `contato@`** (28/09/2026). Em
-      **Supabase → Project Settings → Authentication → SMTP Settings**, o
-      *Sender email* é `noreply@rachapila.com.br`. Endereço que não aceita
-      resposta é sinal clássico de spam para os filtros, e o primeiro link de
-      entrada enviado ao build do TestFlight **caiu no lixo eletrônico do
-      iCloud** (21/09/2026) — sintoma de domínio novo sem reputação.
+- [x] **Remetente do e-mail de entrada trocado para `contato@`** (28/09/2026),
+      em **Authentication → Emails → SMTP Settings**.
 
-      Até hoje não havia alternativa, porque nada no domínio recebia. Agora
-      `contato@` recebe (§5), então dá para usá-lo como remetente: ajuda a
-      reputação e faz chegar a você quem responder ao e-mail — e muita gente
-      responde.
+      O motivo era risco de produto, não acabamento: o primeiro link de
+      entrada enviado ao TestFlight **caiu no lixo eletrônico do iCloud**
+      (21/09/2026), e link de entrada no lixo significa app que não funciona
+      para quem baixou — ninguém vai procurar lá. O remetente era
+      `noreply@`, e endereço que não aceita resposta é sinal clássico de spam
+      para os filtros. Até então não havia alternativa, porque nada no domínio
+      recebia; com o `contato@` de pé (§5), passou a haver.
 
-      É risco de produto, não cosmético: se o link de entrada cai no lixo do
-      usuário comum, o app não funciona para ele, e ninguém vai procurar lá.
+      **Confirmado no mesmo dia: o e-mail seguinte caiu na caixa de entrada.**
+      De quebra, quem responder ao link de entrada agora é lido — e muita
+      gente responde.
 
 - [x] **E-mail de entrada traduzido** (28/09/2026). O modelo padrão do Supabase chega em
       inglês — assunto *"Your sign-in link"* —, e é o **primeiro contato** de

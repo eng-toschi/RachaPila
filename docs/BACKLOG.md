@@ -20,6 +20,71 @@ sincronização novo para testar, na véspera do envio.
 A dor hoje é pequena: as viagens saem por data, que é a ordem que a maioria
 quer.
 
+### Espanhol e inglês
+Perguntado em 28/09/2026, na véspera do envio, e adiado com dois usuários
+reais já identificados — não é item especulativo:
+
+- **espanhol**: o convidado estrangeiro. Brasileiro cria a viagem, convida um
+  argentino ou chileno, e essa pessoa recebe um app 100% em português só para
+  ver quanto deve. Ela não precisa de Pix — precisa entender a lista.
+- **inglês**: irmã do dono do projeto, moradora do Reino Unido.
+
+São 136 strings em 19 telas e nenhuma infraestrutura de i18n hoje. Isso é meio
+dia de trabalho e **não** é o motivo do adiamento. O motivo é este:
+
+**O parser de dinheiro depende do locale.** Está documentado em
+`src/domain/money.ts:196`: em pt-BR `"10,999"` é dez inteiros e 999 milésimos,
+portanto ERRO para BRL; em en-US é dez mil novecentos e noventa e nove. O
+locale hoje está pinado em `'pt-BR'` em quatro lugares — `src/state/format.ts:9`,
+`src/ui/components.tsx:38`, `src/features/expenses/ExpenseForm.tsx:67` e
+`src/features/report/dossierHtml.ts:13`. Tornar isso dinâmico muda como o app
+**lê números digitados pelo usuário**, e é o único ponto do app onde um defeito
+corrompe dinheiro em silêncio, sem erro na tela.
+
+Portanto, a regra de projeto para quando isso for feito: **o idioma da interface
+e o locale de números são coisas separadas.** O idioma segue o aparelho; a
+leitura e a escrita de valores continuam presas à moeda da viagem, nunca à
+língua do telefone. Quem inverter isso vai receber relatos de despesa com
+valor errado e não vai encontrar a causa.
+
+Também é maior que o app: as 4 páginas de `web/`, os templates de e-mail do
+Supabase, a política de privacidade, o dossiê exportado e a ficha da loja
+inteira por idioma, com prints separados para cada uma.
+
+Traduzir também não faz o app funcionar fora do Brasil: o fecho de contas
+termina em Pix copia e cola, e 17 arquivos dependem de Pix/BRL. Tradução
+resolve a interface, não o produto — o caso legítimo é o **convidado**, que só
+precisa ler a divisão.
+
+### Vitrines da UE e o status de negociante
+Registrado junto com o item acima, porque foi a dúvida que o levantou.
+
+O DSA obriga quem distribui nas vitrines dos 27 países da UE a publicar nome,
+endereço e telefone na ficha da loja, e a Apple remove o app de quem não
+declara. Para conta Individual isso significa endereço residencial público —
+recusado pela mesma razão que o nome civil na loja (ver *Nome do vendedor*).
+
+Nenhum dos três idiomas que interessam passa por essa exigência:
+
+| Idioma | Mercado | Exige declarar negociante? |
+|---|---|---|
+| pt-BR | Brasil | não |
+| es | Argentina, Chile, México | não — só a **Espanha** |
+| en | **Reino Unido**, EUA, Canadá, Austrália | não |
+
+O Reino Unido saiu da UE e tem vitrine própria: a irmã instala sem nenhuma
+declaração. Espanha, Portugal e Alemanha ficariam de fora até haver CNPJ.
+
+Duas ressalvas: o campo fica em *Informações do app → status de negociante* e
+deve ser conferido na hora, porque regra de conformidade muda; e não declarar
+não trava o envio, só restringe as vitrines da UE.
+
+Consequência já aplicada na 1.0: **disponibilidade mundial, não restrita ao
+Brasil.** A tentação era limitar ao Brasil por ser app só em português, mas a
+disponibilidade é pela região da conta Apple — e o convidado chileno não
+conseguiria instalar para entrar na viagem. Restringir quebraria o convite
+entre países, que é justamente o que o app faz.
+
 ### Notificações push
 Avisar o grupo a cada despesa lançada. Exige build próprio (já temos),
 certificado de push e uma função no servidor. Não é exigência de loja

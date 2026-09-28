@@ -271,9 +271,16 @@ testador reabrir o app em vez de ignorar a notificação.
       Individual é o nome civil (ver `PUBLICAR.md` §1 para trocá-lo).
 - [ ] **Versão 1.0**: texto promocional, descrição, palavras-chave (§1),
       URL de suporte, capturas de tela e as notas de revisão (§2.8).
-- [ ] **Preços e disponibilidade**: gratuito. É aqui também que se desmarca a
-      União Europeia, se não quiser publicar endereço por causa do *trader
-      status* — ver `PUBLICAR.md` §1.
+- [ ] **Preços e disponibilidade**: gratuito, e **disponibilidade mundial**.
+      Duas coisas diferentes se confundem aqui:
+      - **Desmarcar a União Europeia** faz sentido: o DSA obriga conta
+        Individual a publicar endereço residencial na ficha (*trader status*) —
+        ver `PUBLICAR.md` §1. Perde-se Espanha, Portugal e Alemanha.
+      - **Restringir ao Brasil não faz.** A tentação é grande, por ser app só
+        em português, mas a disponibilidade é pela região da conta Apple: o
+        convidado chileno não conseguiria instalar para entrar na viagem, e o
+        convite entre países é o que o app faz. O **Reino Unido** também fica:
+        saiu da UE, tem vitrine própria e não exige declaração nenhuma.
 - [ ] **Escolher o build** que o `eas submit` enviou, depois que a Apple
       terminar de processar.
 - [ ] **Versão de lançamento**: "liberar automaticamente após aprovação" é o

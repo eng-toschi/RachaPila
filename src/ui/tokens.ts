@@ -1,6 +1,11 @@
 /**
  * Tokens do design system (spec §11).
  *
+ * O acento era roxo até o app ganhar ícone. O ícone veio verde-azulado, e em
+ * vez de repintar a arte para servir ao token — que foi escolhido quando não
+ * havia ícone nenhum —, o token passou a servir à arte. Tudo lê daqui, então
+ * a troca não tocou em tela alguma.
+ *
  * As cores são SEMÂNTICAS: `bg`, `text`, `positive`. Nenhuma tela conhece um
  * hexadecimal — é isso que faz o tema escuro ser uma troca de tabela em vez de
  * uma varredura por arquivos.
@@ -109,8 +114,8 @@ export const LIGHT: Palette = {
   textMuted: '#7A7168',
   textFaint: '#A79C90',
   border: '#E8E1D7',
-  accent: '#6D4AFF',
-  accentSoft: '#EFEAFF',
+  accent: '#0E9E94',
+  accentSoft: '#E2F5F3',
   onAccent: '#FFFFFF',
   positive: '#1F8A5B',
   positiveSoft: '#E3F5EC',
@@ -130,8 +135,8 @@ export const DARK: Palette = {
   textMuted: '#A49CB0',
   textFaint: '#6F6880',
   border: '#322D3B',
-  accent: '#9B7BFF',
-  accentSoft: '#2A2338',
+  accent: '#35C9BE',
+  accentSoft: '#16302E',
   onAccent: '#16141A',
   positive: '#38C08A',
   positiveSoft: '#16302A',

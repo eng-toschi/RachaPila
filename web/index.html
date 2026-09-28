@@ -8,12 +8,12 @@
 <style>
   :root {
     --bg: #FAF7F2; --surface: #FFFFFF; --text: #1F1B16; --muted: #7A7168;
-    --border: #E8E1D7; --accent: #6D4AFF; --on-accent: #FFFFFF;
+    --border: #E8E1D7; --accent: #0E9E94; --on-accent: #FFFFFF;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #16141A; --surface: #201D26; --text: #F5F1EC; --muted: #A49CB0;
-      --border: #322D3B; --accent: #9B7BFF; --on-accent: #16141A;
+      --border: #322D3B; --accent: #35C9BE; --on-accent: #16141A;
     }
   }
   * { box-sizing: border-box; }
@@ -23,7 +23,7 @@
     padding: 0 16px;
   }
   main { max-width: 680px; margin: 0 auto; padding: 72px 0 80px; }
-  .mark { width: 60px; height: 60px; display: block; margin-bottom: 28px; }
+  .mark { width: 60px; height: 60px; display: block; margin-bottom: 28px; border-radius: 14px; }
   h1 { font-size: 36px; line-height: 1.15; letter-spacing: -0.03em; margin: 0 0 12px; }
   .lede { font-size: 19px; color: var(--muted); margin: 0 0 40px; max-width: 34ch; }
   h2 { font-size: 19px; letter-spacing: -0.01em; margin: 44px 0 10px; }
@@ -46,14 +46,7 @@
 </head>
 <body>
 <main>
-  <svg class="mark" viewBox="0 0 100 100" aria-hidden="true">
-    <g fill="var(--accent)">
-      <path d="M50 50 L52.7 6.1 A44 44 0 0 1 74.3 86.7 Z"/>
-      <path d="M50 50 L69.6 89.4 A44 44 0 0 1 6.1 52.7 Z"/>
-      <path d="M50 50 L6.1 47.3 A44 44 0 0 1 47.3 6.1 Z"/>
-    </g>
-    <circle cx="50" cy="50" r="17" fill="var(--bg)"/>
-  </svg>
+  <img class="mark" src="./icone.png" alt="" width="60" height="60">
 
   <h1>RachaPila</h1>
   <p class="lede">Dividir as contas da viagem entre amigos, sem planilha e sem discussão no fim.</p>

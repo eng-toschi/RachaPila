@@ -20,7 +20,7 @@
       "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0E7C74"
+        "backgroundColor": "#0E9E94"
       },
       "permissions": [
         "ACCESS_COARSE_LOCATION",

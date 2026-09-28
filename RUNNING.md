@@ -24,12 +24,6 @@ npm install
 npx expo start
 ```
 
-> O projeto morava em `eng-toschi/DashTrash`, branch
-> `claude/travel-expense-splitting-app-33pgc6` — mudou para
-> `eng-toschi/RachaPila`, branch `main`, com todo o histórico. Se você já
-> tinha a pasta antiga clonada, o mais simples é clonar de novo numa pasta
-> `RachaPila`; ela não precisa mais conviver com a `DashTrash`.
-
 **Pegando uma versão nova** (é este o caso quando eu digo "já subi"):
 
 ```bash
@@ -157,7 +151,7 @@ e a pergunta de escanear QR toda vez. Um **build** é um instalável de verdade 
 
 1. Crie uma conta em [expo.dev](https://expo.dev) (grátis; é diferente da conta
    do GitHub).
-2. No terminal, dentro de `~/DashTrash`:
+2. No terminal, dentro de `~/RachaPila`:
    ```bash
    npm install -g eas-cli
    eas login

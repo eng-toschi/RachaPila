@@ -26,6 +26,24 @@ export function inviteUrl(token: string): string {
   return `${WEB_BASE_URL}/convite.html?c=${token}`;
 }
 
+/**
+ * O texto que acompanha o link.
+ *
+ * Link `https://`, não `rachapila://`: nenhum app de mensagem transforma
+ * esquema customizado em link tocável, então o deep link cru virava texto
+ * morto. A página do convite resolve os dois lados — abre o app sozinha para
+ * quem já tem, e leva à loja quem ainda não tem. O código não vai na mensagem
+ * porque a página o mostra, e mensagem curta é mais provável de ser lida até
+ * o fim.
+ */
+export function inviteMessage(token: string): string {
+  return (
+    `Entra na nossa viagem no RachaPila!\n\n` +
+    `${inviteUrl(token)}\n\n` +
+    `O link abre o app. Se você ainda não tem, ele leva para baixar.`
+  );
+}
+
 export type CreateInviteResult =
   | { readonly ok: true; readonly token: string }
   | { readonly ok: false; readonly message: string };

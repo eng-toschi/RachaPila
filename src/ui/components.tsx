@@ -520,21 +520,50 @@ export function EmptyState({ title, hint, action }: { title: string; hint: strin
 export const Field = forwardRef<TextInput, TextInputProps & { readonly containerStyle?: StyleProp<ViewStyle> }>(
   function Field({ containerStyle, ...input }, forwarded) {
     const own = useRef<TextInput>(null);
+
+    /**
+     * A caixa nasce do tamanho da fonte, e não de um número escolhido à mão.
+     *
+     * Duas vezes um campo apareceu com o texto cortado porque a caixa era
+     * menor do que a fonte precisa desenhar, e as duas vezes o conserto foi
+     * medir na tela e fixar uma altura — 56 para a fonte de display de 20,
+     * anotado em `trip/new.tsx`. O fator 2.8 reproduz justamente esse 56, e
+     * agora vale para qualquer fonte que apareça aqui depois.
+     */
+    // `StyleSheet.flatten` é tipado como se sempre devolvesse um objeto, mas
+    // devolve `undefined` quando não recebe estilo nenhum — e um `Field` sem
+    // `style` é o caso comum. O `?.` existe por causa da execução, não do
+    // tipo; por isso a regra precisa ser calada aqui, e só aqui.
+    const flat = StyleSheet.flatten(input.style);
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    const size = flat?.fontSize ?? 15;
+
     return (
       <Pressable
         accessible={false}
         onPress={() => { own.current?.focus(); }}
-        style={[{ height: MIN_TOUCH, justifyContent: 'center' }, containerStyle]}
+        style={[
+          { minHeight: Math.max(MIN_TOUCH, Math.round(size * 2.8)), justifyContent: 'center' },
+          containerStyle,
+        ]}
       >
+        {/*
+          Sem `flex: 1` e sem `numberOfLines`. O `flex: 1` esticava o campo
+          até a altura da caixa, e aí o `justifyContent: 'center'` do pai não
+          centralizava coisa nenhuma — o texto ia para o topo e o cursor e o
+          placeholder passavam a discordar de posição. Deixando o campo com a
+          altura natural de uma linha, quem centraliza é o pai, que é o que
+          essa linha sempre quis dizer. `numberOfLines` é botão de campo de
+          várias linhas; aqui não fazia nada no iOS.
+        */}
         <TextInput
           ref={(node) => {
             own.current = node;
             if (typeof forwarded === 'function') forwarded(node);
             else if (forwarded !== null) forwarded.current = node;
           }}
-          numberOfLines={1}
           {...input}
-          style={[{ flex: 1, fontSize: 15, padding: 0 }, input.style]}
+          style={[{ fontSize: 15, padding: 0 }, input.style]}
         />
       </Pressable>
     );

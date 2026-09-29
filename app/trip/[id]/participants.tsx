@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { addParticipant, updateParticipant } from '@/commands';
 import { findMe, listParticipants, participantHasExpenses } from '@/db/repositories';
 import { maskPixKey, parsePixKey } from '@/domain/pix';
-import { createInvite, inviteUrl } from '@/services/invites';
+import { createInvite, inviteMessage } from '@/services/invites';
 import { useAuth } from '@/state/auth';
 import { useDatabase, useMutate, useQuery } from '@/state/database';
 import { Avatar, BackButton, Badge, Button, Card, Divider, Field, Row, Text } from '@/ui/components';
@@ -86,18 +86,7 @@ export default function ParticipantsScreen() {
       setInviteError(result.message);
       return;
     }
-    // Link `https://`, não `rachapila://`: nenhum app de mensagem transforma
-    // esquema customizado em link tocável, então o deep link cru virava texto
-    // morto. A página do convite resolve os dois lados — abre o app sozinha
-    // para quem já tem, e leva à loja quem ainda não tem. O código não vai
-    // mais na mensagem porque a página o mostra, e mensagem curta é mais
-    // provável de ser lida até o fim.
-    await Share.share({
-      message:
-        `Entra na nossa viagem no RachaPila!\n\n` +
-        `${inviteUrl(result.token)}\n\n` +
-        `O link abre o app. Se você ainda não tem, ele leva para baixar.`,
-    });
+    await Share.share({ message: inviteMessage(result.token) });
   };
 
   const add = (): void => {
@@ -201,6 +190,7 @@ export default function ParticipantsScreen() {
           gap: SPACING.lg,
         }}
         keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
       >
         <Card padded={false}>
           {people.map((person, index) => {

@@ -309,6 +309,38 @@ export function setSetting(db: Database, key: string, value: string): void {
   db.run('INSERT OR REPLACE INTO app_settings (key, value) VALUES (?, ?)', [key, value]);
 }
 
+const MY_NAME = 'my_name';
+
+/**
+ * Como a pessoa se chama nas viagens que ela cria.
+ *
+ * Fica aqui, e não na conta do Supabase, porque o login é por link mágico: a
+ * conta tem e-mail e nada mais. E fica no aparelho, junto do tema, porque é
+ * preenchimento de formulário — quem viaja não quer digitar o próprio nome a
+ * cada viagem nova.
+ */
+export function getMyName(db: Database): string | undefined {
+  const stored = getSetting(db, MY_NAME)?.trim();
+  return stored === undefined || stored === '' ? undefined : stored;
+}
+
+export function setMyName(db: Database, name: string): void {
+  setSetting(db, MY_NAME, name.trim());
+}
+
+/**
+ * Um primeiro palpite de nome a partir do e-mail, para o campo não nascer
+ * vazio. É só sugestão: fica editável, e quem não gostar apaga.
+ * `fernando.toschi@…` vira "Fernando", não "Fernando.toschi" — o sobrenome
+ * não ajuda a distinguir ninguém numa lista de cinco pessoas.
+ */
+export function nameFromEmail(email: string | undefined): string | undefined {
+  const local = email?.split('@')[0]?.split(/[.\-_+]/)[0];
+  if (local === undefined || local === '') return undefined;
+  if (/^\d+$/.test(local)) return undefined;
+  return local.charAt(0).toUpperCase() + local.slice(1).toLowerCase();
+}
+
 /** Moedas escolhidas para a viagem. A moeda-base vem sempre primeiro. */
 export function listTripCurrencies(db: Database, tripId: string): string[] {
   const codes = db

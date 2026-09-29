@@ -1,12 +1,13 @@
 import { useRef, useState } from 'react';
-import { Pressable, ScrollView, View, type TextInput } from 'react-native';
+import { Pressable, ScrollView, Share, View, type TextInput } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { addParticipant, createTrip, setTripCurrencies } from '@/commands';
-import { localActorId } from '@/db/repositories';
+import { getMyName, localActorId, nameFromEmail, setMyName } from '@/db/repositories';
 import { CurrencyPicker } from '@/features/expenses/CurrencyPicker';
+import { createInvite, inviteMessage } from '@/services/invites';
 import { useAuth } from '@/state/auth';
-import { useMutate } from '@/state/database';
+import { useDatabase, useMutate } from '@/state/database';
 import { Avatar, Button, Card, Chip, Divider, Field, Row, Text } from '@/ui/components';
 import { IconPlus, IconTrash } from '@/ui/icons';
 import { useTheme } from '@/ui/theme';
@@ -16,9 +17,22 @@ export default function NewTripScreen() {
   const t = useTheme();
   const insets = useSafeAreaInsets();
   const mutate = useMutate();
+  const { db } = useDatabase();
   const { session } = useAuth();
 
   const [name, setName] = useState('');
+  /**
+   * Quem cria a viagem chamava-se "Você" — e "Você" é o que os OUTROS viam
+   * depois de sincronizar, o que não identifica ninguém. O nome é pedido
+   * aqui, junto de quem mais vai, e guardado no aparelho para não ser
+   * perguntado de novo na próxima viagem. O e-mail dá o primeiro palpite.
+   */
+  const [myName, setMyNameDraft] = useState(
+    () => getMyName(db) ?? nameFromEmail(session?.user.email) ?? '',
+  );
+  const [createdTripId, setCreatedTripId] = useState<string | undefined>(undefined);
+  const [inviting, setInviting] = useState(false);
+  const [inviteError, setInviteError] = useState<string | undefined>(undefined);
   const [baseCurrency, setBaseCurrency] = useState<string>('BRL');
   const [otherCurrencies, setOtherCurrencies] = useState<string[]>([]);
   const [picking, setPicking] = useState<'base' | 'other' | undefined>(undefined);
@@ -37,7 +51,11 @@ export default function NewTripScreen() {
   const canSave = name.trim() !== '';
 
   const save = (): void => {
+    const meuNome = myName.trim();
+    let novaViagem = '';
+
     mutate((database, ctx) => {
+      if (meuNome !== '') setMyName(database, meuNome);
       const tripId = createTrip(database, ctx, { name: name.trim(), baseCurrency });
       setTripCurrencies(database, ctx, tripId, otherCurrencies);
       // Quem cria a viagem é "você" — identificado pela conta, se já existir
@@ -45,17 +63,87 @@ export default function NewTripScreen() {
       // aparelho mesmo já logado deixaria essa viagem nova sem dono de
       // verdade até o próximo login, e a sincronização falharia com
       // violação de chave estrangeira (ver DECISIONS.md, 19/09).
+      //
+      // Sem nome, volta a ser "Você": sem conta ninguém mais vai ver esta
+      // viagem, então o rótulo genérico não confunde pessoa nenhuma.
       addParticipant(database, ctx, {
         tripId,
-        displayName: 'Você',
+        displayName: meuNome === '' ? 'Você' : meuNome,
         userId: session === null ? localActorId(database) : session.user.id,
       });
       for (const person of people) {
         addParticipant(database, ctx, { tripId, displayName: person });
       }
-      router.replace(`/trip/${tripId}`);
+      novaViagem = tripId;
     });
+
+    if (novaViagem === '') return;
+    // O convite só existe depois da viagem: `createInvite` sincroniza antes de
+    // gerar o token, porque convidar para algo que só existe neste celular não
+    // significa nada para quem aceita. Por isso o link é oferecido aqui, um
+    // passo depois — e só quando há alguém para convidar e conta para assinar.
+    if (people.length === 0 || session === null) {
+      router.replace(`/trip/${novaViagem}`);
+      return;
+    }
+    setCreatedTripId(novaViagem);
   };
+
+  const compartilharConvite = async (tripId: string): Promise<void> => {
+    setInviting(true);
+    setInviteError(undefined);
+    const result = await createInvite(db, tripId);
+    setInviting(false);
+    if (!result.ok) {
+      setInviteError(result.message);
+      return;
+    }
+    await Share.share({ message: inviteMessage(result.token) });
+    router.replace(`/trip/${tripId}`);
+  };
+
+  if (createdTripId !== undefined) {
+    const quem = people.length === 1 ? people[0] : `${String(people.length)} pessoas`;
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: t.bg,
+          paddingTop: insets.top + SPACING.lg,
+          paddingHorizontal: SPACING.xl,
+          paddingBottom: insets.bottom + SPACING.lg,
+          gap: SPACING.lg,
+        }}
+      >
+        <Text variant="title">Viagem criada</Text>
+        <Card style={{ gap: SPACING.md }}>
+          <Text variant="body">
+            {quem} já entra na divisão sem instalar nada. O convite é só para quem também vai
+            lançar gastos do próprio celular.
+          </Text>
+          <Text variant="caption" tone="faint">
+            Um link serve para o grupo todo: quem entrar escolhe quem é na viagem.
+          </Text>
+          {inviteError === undefined ? null : (
+            <Text variant="caption" tone="negative">
+              {inviteError}
+            </Text>
+          )}
+        </Card>
+        <View style={{ flex: 1 }} />
+        <Button
+          label={inviting ? 'Gerando o link…' : 'Compartilhar convite'}
+          disabled={inviting}
+          onPress={() => { void compartilharConvite(createdTripId); }}
+        />
+        <Button
+          label="Agora não"
+          variant="secondary"
+          onPress={() => { router.replace(`/trip/${createdTripId}`); }}
+        />
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
@@ -67,6 +155,12 @@ export default function NewTripScreen() {
           gap: SPACING.lg,
         }}
         keyboardShouldPersistTaps="handled"
+        /*
+          Sem isto, digitar um nome em "Quem vai" empurra a lista para trás do
+          teclado e a pessoa não vê quem acabou de acrescentar. O iOS sabe
+          descontar o teclado da área rolável sozinho; só faltava pedir.
+        */
+        automaticallyAdjustKeyboardInsets
       >
         <Row style={{ justifyContent: 'space-between' }}>
           <Pressable onPress={() => { router.back(); }} accessibilityRole="button">
@@ -79,11 +173,7 @@ export default function NewTripScreen() {
         </Row>
 
         <Card>
-          {/* Caixa de 56 para uma fonte de display de 20: o `minHeight: 34`
-              que havia aqui era menor do que a fonte precisa desenhar, e
-              cortava as letras em cima e embaixo. */}
           <Field
-            containerStyle={{ height: 56 }}
             value={name}
             onChangeText={setName}
             placeholder="Para onde vocês vão?"
@@ -133,11 +223,17 @@ export default function NewTripScreen() {
           </Text>
 
           <Card padded={false}>
-            <Row style={{ paddingHorizontal: SPACING.lg, paddingVertical: SPACING.md }}>
-              <Avatar name="Você" seed="me" size={32} />
-              <Text variant="body" strong style={{ flex: 1 }}>
-                Você
-              </Text>
+            <Row style={{ paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm }}>
+              <Avatar name={myName === '' ? 'Você' : myName} seed="me" size={32} />
+              <Field
+                containerStyle={{ flex: 1 }}
+                value={myName}
+                onChangeText={setMyNameDraft}
+                placeholder="Seu nome"
+                placeholderTextColor={t.textFaint}
+                accessibilityLabel="Seu nome nesta viagem"
+                style={{ fontSize: 15, fontFamily: FONT.semi, color: t.text }}
+              />
             </Row>
 
             {people.map((person, index) => (
@@ -202,7 +298,8 @@ export default function NewTripScreen() {
           </Card>
 
           <Text variant="caption" tone="faint">
-            Basta o nome. Ninguém precisa instalar nada para as contas dele já entrarem.
+            Basta o nome. Ninguém precisa instalar nada para as contas dele já entrarem — o
+            convite vem no passo seguinte, para quem também vai lançar gastos.
           </Text>
         </View>
       </ScrollView>

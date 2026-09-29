@@ -11,7 +11,8 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "bundle": "expo export --platform ios --platform android --output-dir .expo-export"
+    "bundle": "expo export --platform ios --platform android --output-dir .expo-export",
+    "antes-do-build": "bash scripts/antes-do-build.sh"
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",

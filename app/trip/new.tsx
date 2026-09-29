@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Share, View, type TextInput } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -27,9 +27,25 @@ export default function NewTripScreen() {
    * aqui, junto de quem mais vai, e guardado no aparelho para não ser
    * perguntado de novo na próxima viagem. O e-mail dá o primeiro palpite.
    */
-  const [myName, setMyNameDraft] = useState(
-    () => getMyName(db) ?? nameFromEmail(session?.user.email) ?? '',
-  );
+  const [myName, setMyNameDraft] = useState(() => getMyName(db) ?? '');
+  const [nomeTocado, setNomeTocado] = useState(false);
+
+  /**
+   * O palpite pelo e-mail precisa esperar a sessão chegar.
+   *
+   * `useState` com inicializadora roda uma vez, na primeira renderização — e
+   * nessa hora `session` ainda é `null`, porque `AuthProvider` a carrega de
+   * forma assíncrona. Feito ali, o palpite nunca acontecia: o campo nascia
+   * vazio, e vazio virava "Você" na viagem inteira, inclusive para os outros.
+   *
+   * Só preenche enquanto ninguém digitou nada: sugerir por cima do que a
+   * pessoa escreveu seria pior que não sugerir.
+   */
+  useEffect(() => {
+    if (nomeTocado || myName !== '') return;
+    const palpite = nameFromEmail(session?.user.email);
+    if (palpite !== undefined) setMyNameDraft(palpite);
+  }, [session, nomeTocado, myName]);
   const [createdTripId, setCreatedTripId] = useState<string | undefined>(undefined);
   const [inviting, setInviting] = useState(false);
   const [inviteError, setInviteError] = useState<string | undefined>(undefined);
@@ -51,7 +67,10 @@ export default function NewTripScreen() {
   const canSave = name.trim() !== '';
 
   const save = (): void => {
-    const meuNome = myName.trim();
+    // Relê a sessão na hora de salvar, em vez de confiar no que a tela pintou:
+    // quem tem conta é visto pelos outros, e "Você" não identifica ninguém.
+    // Sem conta, "Você" é inofensivo — a viagem não sai deste celular.
+    const meuNome = myName.trim() === '' ? (nameFromEmail(session?.user.email) ?? '') : myName.trim();
     let novaViagem = '';
 
     mutate((database, ctx) => {
@@ -233,7 +252,10 @@ export default function NewTripScreen() {
               <Field
                 containerStyle={{ flex: 1 }}
                 value={myName}
-                onChangeText={setMyNameDraft}
+                onChangeText={(text) => {
+                  setNomeTocado(true);
+                  setMyNameDraft(text);
+                }}
                 placeholder="Seu nome"
                 placeholderTextColor={t.textFaint}
                 accessibilityLabel="Seu nome nesta viagem"

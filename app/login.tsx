@@ -6,7 +6,7 @@
  * abrir ela continua lançando despesa offline como sempre (§17 "não peça
  * login antes de entregar valor").
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -51,9 +51,15 @@ export default function LoginScreen() {
    * mais por aquela tela — e sem um lugar para informar o nome, as viagens
    * antigas ficariam com "Você" para sempre.
    */
-  const [myName, setMyNameDraft] = useState(
-    () => getMyName(db) ?? nameFromEmail(session?.user.email) ?? '',
-  );
+  const [myName, setMyNameDraft] = useState(() => getMyName(db) ?? '');
+  const [nomeTocado, setNomeTocado] = useState(false);
+
+  /** Mesmo motivo de `trip/new.tsx`: a sessão chega depois da primeira pintura. */
+  useEffect(() => {
+    if (nomeTocado || myName !== '') return;
+    const palpite = nameFromEmail(session?.user.email);
+    if (palpite !== undefined) setMyNameDraft(palpite);
+  }, [session, nomeTocado, myName]);
   const [renamed, setRenamed] = useState<number | undefined>(undefined);
 
   const saveMyName = (): void => {
@@ -192,6 +198,7 @@ export default function LoginScreen() {
               <Field
                 value={myName}
                 onChangeText={(text) => {
+                  setNomeTocado(true);
                   setMyNameDraft(text);
                   setRenamed(undefined);
                 }}

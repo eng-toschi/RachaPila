@@ -543,13 +543,13 @@ export const Field = forwardRef<TextInput, TextInputProps & { readonly container
      * A caixa acompanha o tamanho de texto do sistema.
      *
      * Quem aumenta o texto nos Ajustes do iPhone faz o iOS desenhar uma fonte
-     * maior dentro da mesma caixa — e o que passa do limite some cortado. Foi
-     * o que apareceu no teste do b52: campo com o texto pela metade num
-     * aparelho, e certo no raciocínio de quem só lê o código.
+     * maior dentro da mesma caixa — e o que passa do limite some cortado.
+     * `getFontScale` devolve esse fator, então a caixa cresce junto.
      *
-     * `getFontScale` devolve esse fator, então a caixa cresce junto em vez de
-     * cortar. Desligar o `allowFontScaling` resolveria igual e seria pior:
-     * quem aumentou o texto tem motivo para isso.
+     * Isto NÃO é a explicação do campo cortado relatado em 29/09/2026: o
+     * aparelho estava com o tamanho de texto no padrão, e a hipótese caiu.
+     * Fica porque protege de um problema real em quem aumenta o texto, e
+     * porque no padrão o fator é 1 e nada muda.
      *
      * O 2.8 vem da medida feita à mão que funcionou: 56 de caixa para a fonte
      * de display de 20, anotado em `trip/new.tsx`.

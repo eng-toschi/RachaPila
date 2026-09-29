@@ -261,6 +261,32 @@ aconteceu.
 Nos builds seguintes, troque por uma lista curta do que mudou — é o que faz o
 testador reabrir o app em vez de ignorar a notificação.
 
+### Fazer o build chegar sozinho aos testadores
+
+São duas metades independentes, e confundi-las faz parecer que a automação
+não funciona.
+
+**Do seu lado — TestFlight → o grupo de testadores → distribuição
+automática.** Ligado, todo build enviado pelo `eas submit` entra no grupo sem
+você atribuir nada. Ressalva: em grupo externo a revisão de beta continua
+valendo por **versão**, não por build. Subindo b53, b54 dentro da 1.0, saem na
+hora; o primeiro build da 1.1 espera revisão, e a distribuição automática só
+acontece depois da liberação.
+
+**Do lado de quem testa — o TestFlight avisa, não instala.** Cada pessoa abre
+o TestFlight, toca no RachaPila e liga *Atualizações automáticas*. É uma vez
+por pessoa e não dá para fazer por elas: vale mandar a instrução junto do
+convite.
+
+**Testador interno** recebe todo build na hora, sem revisão de beta em versão
+nenhuma. O preço é ter conta na App Store Connect — mesmo nos papéis
+limitados, é acesso à conta de desenvolvedor. Para um círculo de amigos e
+família, grupo externo com distribuição automática resolve o trabalho
+repetido sem dar acesso a ninguém.
+
+Os nomes dos botões mudam de tempos em tempos; o que não muda é a separação
+acima — um lado libera o build, o outro instala.
+
 ## 3. O que ainda falta no App Store Connect
 
 - [x] Privacidade do app — cinco tipos declarados e publicados (21/09/2026).

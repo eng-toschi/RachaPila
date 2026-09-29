@@ -261,31 +261,37 @@ aconteceu.
 Nos builds seguintes, troque por uma lista curta do que mudou — é o que faz o
 testador reabrir o app em vez de ignorar a notificação.
 
-### Fazer o build chegar sozinho aos testadores
+### Distribuição automática: existe, mas não para grupo externo
 
-São duas metades independentes, e confundi-las faz parecer que a automação
-não funciona.
+Anotado em 29/09/2026 depois de eu afirmar o contrário duas vezes e mandar
+procurar botão que não existe. A regra da Apple:
 
-**Do seu lado — TestFlight → o grupo de testadores → distribuição
-automática.** Ligado, todo build enviado pelo `eas submit` entra no grupo sem
-você atribuir nada. Ressalva: em grupo externo a revisão de beta continua
-valendo por **versão**, não por build. Subindo b53, b54 dentro da 1.0, saem na
-hora; o primeiro build da 1.1 espera revisão, e a distribuição automática só
-acontece depois da liberação.
+| | Grupo interno | Grupo externo |
+|---|---|---|
+| Build chega sozinho | sim | **não, sempre manual** |
+| Espera revisão de beta | nunca | 1º build de cada versão |
+| Exige conta na App Store Connect | **sim, por pessoa** | não |
 
-**Do lado de quem testa — o TestFlight avisa, não instala.** Cada pessoa abre
-o TestFlight, toca no RachaPila e liga *Atualizações automáticas*. É uma vez
-por pessoa e não dá para fazer por elas: vale mandar a instrução junto do
-convite.
+E a distribuição automática do grupo interno **só pode ser escolhida quando o
+grupo é criado** — não há como ligar depois num grupo que já existe.
 
-**Testador interno** recebe todo build na hora, sem revisão de beta em versão
-nenhuma. O preço é ter conta na App Store Connect — mesmo nos papéis
-limitados, é acesso à conta de desenvolvedor. Para um círculo de amigos e
-família, grupo externo com distribuição automática resolve o trabalho
-repetido sem dar acesso a ninguém.
+Ou seja, é uma troca real: automação custa dar acesso à conta de
+desenvolvedor a cada testador. Para família e amigos, o grupo externo com
+link público continua sendo a escolha certa — o custo é adicionar o build ao
+grupo, na aba *Compilações* do grupo, a cada versão. As pessoas não são
+reconfiguradas: o link público cuida disso.
 
-Os nomes dos botões mudam de tempos em tempos; o que não muda é a separação
-acima — um lado libera o build, o outro instala.
+Se um dia o passo manual incomodar, ele é automatizável pela API da App Store
+Connect (o `fastlane pilot` distribui para grupo externo por linha de
+comando). Montar isso dá mais trabalho do que os dois cliques.
+
+**Do lado de quem testa, o TestFlight avisa mas não instala.** Cada pessoa
+abre o TestFlight, toca no RachaPila e liga *Atualizações automáticas*. É uma
+vez por pessoa, não dá para fazer por elas, e vale mandar a instrução junto
+do convite — sem isso, ligar qualquer coisa do lado de cá não adianta.
+
+Fonte: App Store Connect Help, *Add internal testers* e *Invite external
+testers*.
 
 ## 3. O que ainda falta no App Store Connect
 

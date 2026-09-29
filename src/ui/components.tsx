@@ -554,7 +554,13 @@ export const Field = forwardRef<TextInput, TextInputProps & { readonly container
      * O 2.8 vem da medida feita à mão que funcionou: 56 de caixa para a fonte
      * de display de 20, anotado em `trip/new.tsx`.
      */
-    const alturaMinima = Math.max(MIN_TOUCH, Math.round(size * 2.8 * PixelRatio.getFontScale()));
+    // O piso é 52, e não os 44 do toque mínimo, por medida e não por gosto: no
+    // print do campo cortado o texto é desenhado cerca de 26pt abaixo do
+    // cursor, o que numa caixa de 44 passa da borda. Em 52 cabe. É folga, não
+    // diagnóstico — a causa de o texto descer continua desconhecida, e o campo
+    // grande (fonte 20, caixa 56) nunca teve o problema porque já tinha folga.
+    const PISO = 52;
+    const alturaMinima = Math.max(PISO, Math.round(size * 2.8 * PixelRatio.getFontScale()));
 
     return (
       <Pressable

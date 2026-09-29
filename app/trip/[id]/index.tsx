@@ -9,8 +9,19 @@ import { renameTrip } from '@/commands';
 import { useMutate, useQuery } from '@/state/database';
 import { dayLabel, timeLabel } from '@/state/format';
 import { useSync } from '@/state/sync';
-import { Avatar, Badge, Button, Card, EmptyState, MoneyText, Row, SegmentedControl, Text } from '@/ui/components';
-import { CATEGORY_ICONS, IconBack, IconEdit, IconPlus, IconUsers } from '@/ui/icons';
+import {
+  Avatar,
+  BackButton,
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  MoneyText,
+  Row,
+  SegmentedControl,
+  Text,
+} from '@/ui/components';
+import { CATEGORY_ICONS, IconEdit, IconPlus, IconUsers } from '@/ui/icons';
 import { useTheme, useThemeControl } from '@/ui/theme';
 import { MIN_TOUCH, RADIUS, SPACING, categoryColor, categoryTint } from '@/ui/tokens';
 
@@ -138,9 +149,7 @@ export default function TripScreen() {
     <View style={{ flex: 1, backgroundColor: t.bg }}>
       <View style={{ paddingTop: insets.top + SPACING.sm, paddingHorizontal: SPACING.xl, gap: SPACING.lg }}>
         <Row style={{ justifyContent: 'space-between' }}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Voltar" onPress={() => { router.back(); }} hitSlop={12}>
-            <IconBack size={24} color={t.text} />
-          </Pressable>
+          <BackButton />
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`Renomear viagem ${view.name}`}

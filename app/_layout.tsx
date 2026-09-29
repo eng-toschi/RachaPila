@@ -29,6 +29,20 @@ import { ThemeProvider, useTheme, useThemeControl } from '@/ui/theme';
 
 void SplashScreen.preventAutoHideAsync();
 
+/**
+ * Qual rota é o chão da pilha.
+ *
+ * Sem isto, quem chega a uma tela por fora da navegação normal — link de
+ * convite `rachapila://`, `router.replace` saindo de uma modal, ou o sistema
+ * reabrindo o app direto numa rota — cai numa pilha de um item só. A seta de
+ * voltar então não falha: ela não faz nada, porque não há o que desempilhar.
+ * Declarando a âncora, o router materializa a home embaixo e o voltar tem
+ * para onde ir.
+ *
+ * A chave é `anchor`; `initialRouteName` é o nome antigo, ainda aceito.
+ */
+export const unstable_settings = { anchor: 'index' };
+
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     BricolageGrotesque_600SemiBold,

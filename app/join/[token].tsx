@@ -18,7 +18,7 @@ import { supabase } from '@/services/supabase';
 import { useAuth } from '@/state/auth';
 import { useDatabase } from '@/state/database';
 import { pullTrip, pushTrip } from '@/sync/client';
-import { Avatar, Button, Card, Divider, Row, Text } from '@/ui/components';
+import { Avatar, Button, Card, Divider, Row, Text, goBack } from '@/ui/components';
 import { IconUser } from '@/ui/icons';
 import { useTheme } from '@/ui/theme';
 import { MIN_TOUCH, RADIUS, SPACING } from '@/ui/tokens';
@@ -167,7 +167,7 @@ export default function JoinScreen() {
             <Text variant="body" tone="muted" style={{ textAlign: 'center' }}>
               {message}
             </Text>
-            <Button label="Voltar" variant="secondary" onPress={() => { router.back(); }} />
+            <Button label="Voltar" variant="secondary" onPress={goBack} />
           </View>
         ) : null}
 

@@ -8,8 +8,8 @@ import { maskPixKey, parsePixKey } from '@/domain/pix';
 import { createInvite, inviteUrl } from '@/services/invites';
 import { useAuth } from '@/state/auth';
 import { useDatabase, useMutate, useQuery } from '@/state/database';
-import { Avatar, Badge, Button, Card, Divider, Field, Row, Text } from '@/ui/components';
-import { IconBack, IconCheck, IconChevron, IconInfo, IconPlus } from '@/ui/icons';
+import { Avatar, BackButton, Badge, Button, Card, Divider, Field, Row, Text } from '@/ui/components';
+import { IconCheck, IconChevron, IconInfo, IconPlus } from '@/ui/icons';
 import { useTheme } from '@/ui/theme';
 import { RADIUS, SPACING } from '@/ui/tokens';
 
@@ -187,9 +187,7 @@ export default function ParticipantsScreen() {
     <View style={{ flex: 1, backgroundColor: t.bg }}>
       <View style={{ paddingTop: insets.top + SPACING.sm, paddingHorizontal: SPACING.xl }}>
         <Row style={{ justifyContent: 'space-between' }}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Voltar" onPress={() => { router.back(); }} hitSlop={12}>
-            <IconBack size={24} color={t.text} />
-          </Pressable>
+          <BackButton />
           <Text variant="title">Participantes</Text>
           <View style={{ width: 24 }} />
         </Row>

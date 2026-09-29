@@ -21,7 +21,7 @@ import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { formatMoney, type Money } from '@/domain/money';
 import { useAuth } from '@/state/auth';
-import { CATEGORY_ICONS, IconAuto, IconMoon, IconSun, IconUser } from './icons';
+import { CATEGORY_ICONS, IconAuto, IconBack, IconMoon, IconSun, IconUser } from './icons';
 import {
   FONT,
   MIN_TOUCH,
@@ -595,6 +595,30 @@ export function ThemeToggle({ size = 40 }: { size?: number }) {
       })}
     >
       <Icon size={Math.round(size * 0.5)} color={t.textMuted} />
+    </Pressable>
+  );
+}
+
+/**
+ * Voltar que funciona mesmo sem histórico.
+ *
+ * `router.back()` sozinho é um botão morto quando a tela é a primeira da
+ * pilha — e isso acontece de verdade: link de convite, `replace` saindo de
+ * modal, app reaberto pelo sistema numa rota interna. A âncora em
+ * `app/_layout.tsx` resolve a maioria dos casos; esta rede embaixo cobre o
+ * resto, porque uma seta que não faz nada é pior que seta nenhuma.
+ */
+export function goBack() {
+  if (router.canGoBack()) router.back();
+  else router.replace('/');
+}
+
+/** A seta do cabeçalho. Estava copiada em três telas, com o mesmo defeito nas três. */
+export function BackButton({ label = 'Voltar' }: { readonly label?: string }) {
+  const t = useTheme();
+  return (
+    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={goBack} hitSlop={12}>
+      <IconBack size={24} color={t.text} />
     </Pressable>
   );
 }

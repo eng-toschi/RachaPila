@@ -22,8 +22,19 @@ import { convertCents } from '@/domain/fx';
 import { shareTripDossier } from '@/features/report/shareDossier';
 import { useDatabase, useMutate, useQuery } from '@/state/database';
 import { CATEGORY_LABELS, todayIso } from '@/state/format';
-import { Avatar, Button, Card, Chip, Divider, MoneyText, Row, SegmentedControl, Text } from '@/ui/components';
-import { IconBack, IconCopy, IconShare } from '@/ui/icons';
+import {
+  Avatar,
+  BackButton,
+  Button,
+  Card,
+  Chip,
+  Divider,
+  MoneyText,
+  Row,
+  SegmentedControl,
+  Text,
+} from '@/ui/components';
+import { IconCopy, IconShare } from '@/ui/icons';
 import { useTheme } from '@/ui/theme';
 import { RADIUS, SPACING, categoryColor } from '@/ui/tokens';
 
@@ -182,9 +193,7 @@ export default function ClosingScreen() {
     <View style={{ flex: 1, backgroundColor: t.bg }}>
       <View style={{ paddingTop: insets.top + SPACING.sm, paddingHorizontal: SPACING.xl }}>
         <Row style={{ justifyContent: 'space-between' }}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Voltar" onPress={() => { router.back(); }} hitSlop={12}>
-            <IconBack size={24} color={t.text} />
-          </Pressable>
+          <BackButton />
           <Text variant="title">Fechamento</Text>
           <Pressable
             accessibilityRole="button"

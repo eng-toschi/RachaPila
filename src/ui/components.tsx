@@ -7,6 +7,7 @@
  */
 import { forwardRef, useRef, type ReactNode } from 'react';
 import {
+  PixelRatio,
   Pressable,
   StyleSheet,
   Text as RNText,
@@ -538,23 +539,34 @@ export const Field = forwardRef<TextInput, TextInputProps & { readonly container
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     const size = flat?.fontSize ?? 15;
 
+    /**
+     * A caixa acompanha o tamanho de texto do sistema.
+     *
+     * Quem aumenta o texto nos Ajustes do iPhone faz o iOS desenhar uma fonte
+     * maior dentro da mesma caixa — e o que passa do limite some cortado. Foi
+     * o que apareceu no teste do b52: campo com o texto pela metade num
+     * aparelho, e certo no raciocínio de quem só lê o código.
+     *
+     * `getFontScale` devolve esse fator, então a caixa cresce junto em vez de
+     * cortar. Desligar o `allowFontScaling` resolveria igual e seria pior:
+     * quem aumentou o texto tem motivo para isso.
+     *
+     * O 2.8 vem da medida feita à mão que funcionou: 56 de caixa para a fonte
+     * de display de 20, anotado em `trip/new.tsx`.
+     */
+    const alturaMinima = Math.max(MIN_TOUCH, Math.round(size * 2.8 * PixelRatio.getFontScale()));
+
     return (
       <Pressable
         accessible={false}
         onPress={() => { own.current?.focus(); }}
-        style={[
-          { minHeight: Math.max(MIN_TOUCH, Math.round(size * 2.8)), justifyContent: 'center' },
-          containerStyle,
-        ]}
+        style={[{ minHeight: alturaMinima, justifyContent: 'center' }, containerStyle]}
       >
         {/*
-          Sem `flex: 1` e sem `numberOfLines`. O `flex: 1` esticava o campo
-          até a altura da caixa, e aí o `justifyContent: 'center'` do pai não
-          centralizava coisa nenhuma — o texto ia para o topo e o cursor e o
-          placeholder passavam a discordar de posição. Deixando o campo com a
-          altura natural de uma linha, quem centraliza é o pai, que é o que
-          essa linha sempre quis dizer. `numberOfLines` é botão de campo de
-          várias linhas; aqui não fazia nada no iOS.
+          O `flex: 1` precisa ficar. Sem ele o `TextInput` do iOS nasce sem
+          altura própria e o texto desenha fora da caixa — o campo fica
+          aparentemente vazio, com o placeholder cortado embaixo. Foi o que a
+          tentativa anterior provocou.
         */}
         <TextInput
           ref={(node) => {
@@ -563,7 +575,7 @@ export const Field = forwardRef<TextInput, TextInputProps & { readonly container
             else if (forwarded !== null) forwarded.current = node;
           }}
           {...input}
-          style={[{ fontSize: 15, padding: 0 }, input.style]}
+          style={[{ flex: 1, fontSize: 15, padding: 0 }, input.style]}
         />
       </Pressable>
     );

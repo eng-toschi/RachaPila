@@ -20,8 +20,8 @@ import {
   useFonts,
 } from '@expo-google-fonts/bricolage-grotesque';
 import { Figtree_500Medium, Figtree_600SemiBold, Figtree_700Bold } from '@expo-google-fonts/figtree';
-import { linkParticipantToUser } from '@/commands';
-import { findMe, listTrips, localActorId, setLinkedUserId } from '@/db/repositories';
+import { linkParticipantToUser, renameMeInAllTrips } from '@/commands';
+import { findMe, getMyName, listTrips, localActorId, setLinkedUserId } from '@/db/repositories';
 import { AuthProvider, useAuth } from '@/state/auth';
 import { DatabaseProvider, useDatabase } from '@/state/database';
 import { SyncProvider } from '@/state/sync';
@@ -102,6 +102,24 @@ function Navigation() {
           linkParticipantToUser(database, ctx, { participantId: me.id, userId });
         }
       }
+    });
+  }, [session, db, mutate]);
+
+  /**
+   * Conserta o "Você" das viagens feitas até a b50.
+   *
+   * Roda na abertura, e não como migração de schema, porque na hora da
+   * migração o nome normalmente ainda não existe: ele é guardado quando a
+   * pessoa o informa, o que pode acontecer bem depois de atualizar o app.
+   * Aqui vale também para viagem que chegou depois, pelo sincronismo.
+   *
+   * Sem nome guardado não faz nada — e não faz nada de novo na segunda vez,
+   * porque só toca em quem ainda se chama exatamente "Você".
+   */
+  useEffect(() => {
+    mutate((database, ctx) => {
+      const meuNome = getMyName(database);
+      if (meuNome !== undefined) renameMeInAllTrips(database, ctx, meuNome);
     });
   }, [session, db, mutate]);
 

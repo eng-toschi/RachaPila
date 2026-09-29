@@ -20,10 +20,12 @@ import {
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { APP_BUILD, APP_NAME, APP_VERSION } from '@/config/app';
+import { renameMeInAllTrips } from '@/commands';
+import { getMyName, nameFromEmail, setMyName } from '@/db/repositories';
 import { deleteAccount } from '@/services/account';
 import { useAuth } from '@/state/auth';
 import { useDatabase } from '@/state/database';
-import { Button, Card, Row, Text } from '@/ui/components';
+import { Button, Card, Field, Row, Text } from '@/ui/components';
 import { IconCheck, IconUser } from '@/ui/icons';
 import { useTheme } from '@/ui/theme';
 import { FONT, MIN_TOUCH, RADIUS, SPACING } from '@/ui/tokens';
@@ -42,6 +44,26 @@ export default function LoginScreen() {
   const [showInvite, setShowInvite] = useState(false);
   const [inviteInput, setInviteInput] = useState('');
   const [deleting, setDeleting] = useState(false);
+  /**
+   * O nome com que a pessoa aparece para os outros.
+   *
+   * Fica aqui além da criação de viagem porque quem já tem viagens não passa
+   * mais por aquela tela — e sem um lugar para informar o nome, as viagens
+   * antigas ficariam com "Você" para sempre.
+   */
+  const [myName, setMyNameDraft] = useState(
+    () => getMyName(db) ?? nameFromEmail(session?.user.email) ?? '',
+  );
+  const [renamed, setRenamed] = useState<number | undefined>(undefined);
+
+  const saveMyName = (): void => {
+    const nome = myName.trim();
+    if (nome === '' || nome === getMyName(db)) return;
+    mutate((database, ctx) => {
+      setMyName(database, nome);
+      setRenamed(renameMeInAllTrips(database, ctx, nome));
+    });
+  };
 
   const validEmail = EMAIL_RE.test(email.trim());
 
@@ -162,6 +184,35 @@ export default function LoginScreen() {
                 {session.user.email}
               </Text>
             </View>
+
+            <Card style={{ alignSelf: 'stretch', gap: SPACING.xs }}>
+              <Text variant="overline" tone="faint">
+                Seu nome
+              </Text>
+              <Field
+                value={myName}
+                onChangeText={(text) => {
+                  setMyNameDraft(text);
+                  setRenamed(undefined);
+                }}
+                onBlur={saveMyName}
+                onSubmitEditing={saveMyName}
+                returnKeyType="done"
+                placeholder="Como você aparece para os outros"
+                placeholderTextColor={t.textFaint}
+                accessibilityLabel="Seu nome nas viagens"
+                style={{ color: t.text }}
+              />
+              <Text variant="caption" tone={renamed === undefined ? 'faint' : 'positive'}>
+                {renamed === undefined
+                  ? 'É o que o grupo vê nas viagens que você cria.'
+                  : renamed === 0
+                    ? 'Nome guardado.'
+                    : renamed === 1
+                      ? 'Nome guardado, e uma viagem que dizia "Você" foi corrigida.'
+                      : `Nome guardado, e ${String(renamed)} viagens que diziam "Você" foram corrigidas.`}
+              </Text>
+            </Card>
             <Button
               label="Sair da conta"
               variant="secondary"

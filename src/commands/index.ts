@@ -13,9 +13,11 @@
  */
 import type { Database } from '../db/driver';
 import {
+  findMe,
   getTrip,
   listActiveParticipants,
   listShares,
+  listTrips,
   type ParticipantRow,
 } from '../db/repositories';
 import { computeShares, type Split, type SplitError } from '../domain/split';
@@ -885,4 +887,44 @@ export function deleteSettlement(
   });
 
   return ok(undefined);
+}
+
+/** O rótulo genérico que este comando existe para apagar. */
+const GENERICO = 'Você';
+
+/**
+ * Troca o "Você" das viagens antigas pelo nome de verdade.
+ *
+ * Até a b50 quem criava uma viagem entrava como "Você" — e "Você" era o que
+ * os OUTROS viam depois de sincronizar, o que não identifica ninguém. A b51
+ * passou a perguntar o nome, mas só na criação: viagem que já existia
+ * continuaria com o rótulo para sempre.
+ *
+ * Duas escolhas que valem explicar:
+ *
+ * Renomeia só quem ainda se chama exatamente "Você". Quem já se renomeou na
+ * mão escolheu um nome, e migração nenhuma tem o direito de desfazer isso.
+ *
+ * Passa por `updateParticipant`, e não por um UPDATE direto: `display_name`
+ * é dado sincronizado. Sem o outbox e sem o lamport subir, o nome novo
+ * ficaria só neste aparelho e os outros continuariam vendo "Você" — que é
+ * exatamente o defeito que este comando conserta.
+ */
+export function renameMeInAllTrips(
+  db: Database,
+  ctx: CommandContext,
+  displayName: string,
+): number {
+  const nome = displayName.trim();
+  if (nome === '' || nome === GENERICO) return 0;
+
+  let renomeados = 0;
+  for (const trip of listTrips(db)) {
+    const me = findMe(db, trip.id);
+    if (me === undefined || me.display_name !== GENERICO) continue;
+    if (updateParticipant(db, ctx, { participantId: me.id, displayName: nome }).ok) {
+      renomeados += 1;
+    }
+  }
+  return renomeados;
 }

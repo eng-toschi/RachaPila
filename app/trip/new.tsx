@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { Pressable, ScrollView, Share, View, type TextInput } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { addParticipant, createTrip, setTripCurrencies } from '@/commands';
+import { addParticipant, createTrip, renameMeInAllTrips, setTripCurrencies } from '@/commands';
 import { getMyName, localActorId, nameFromEmail, setMyName } from '@/db/repositories';
 import { CurrencyPicker } from '@/features/expenses/CurrencyPicker';
 import { createInvite, inviteMessage } from '@/services/invites';
@@ -55,7 +55,12 @@ export default function NewTripScreen() {
     let novaViagem = '';
 
     mutate((database, ctx) => {
-      if (meuNome !== '') setMyName(database, meuNome);
+      if (meuNome !== '') {
+        setMyName(database, meuNome);
+        // As viagens que já existiam continuariam com "Você" para sempre: é
+        // aqui que o nome fica conhecido pela primeira vez.
+        renameMeInAllTrips(database, ctx, meuNome);
+      }
       const tripId = createTrip(database, ctx, { name: name.trim(), baseCurrency });
       setTripCurrencies(database, ctx, tripId, otherCurrencies);
       // Quem cria a viagem é "você" — identificado pela conta, se já existir

@@ -74,6 +74,47 @@ Três páginas estáticas que resolvem exigências diferentes:
 A terceira é a que faz o convite funcionar fora do grupo de quem já
 instalou. Sem ela, o convite era um código para colar num app inexistente.
 
+### Três coisas se chamam "Expo", e confundi-las custa tempo
+
+Registrado em 30/09/2026, depois de "vamos rodar `npx expo start`" ser
+entendido como "vamos voltar para o Expo Go". São camadas distintas, com
+dependências distintas:
+
+**1. O SDK — vai dentro do binário, para sempre.** Os 17 pacotes `expo-*` do
+`package.json` são compilados no app. Não são serviço, não pedem internet, e
+não dependem de a Expo continuar existindo. É o que dá as capacidades
+nativas:
+
+| Pacote | O que resolve aqui |
+|---|---|
+| `expo-sqlite` | o banco local, de onde vem o funcionamento offline |
+| `expo-secure-store` | a sessão do Supabase no Keychain (em pedaços; ver §2 KB) |
+| `expo-crypto` | o token do convite, com fonte aleatória de verdade |
+| `expo-router` | a navegação por arquivos em `app/` |
+| `expo-print` | o dossiê em PDF |
+| `expo-location`, `expo-clipboard`, `expo-haptics` | lugar do gasto, copia-e-cola do Pix, vibração |
+
+**2. As ferramentas locais — só durante o desenvolvimento.** `npx expo start`
+é o servidor que monta o JavaScript e recarrega o app em segundos. É o mesmo
+projeto, com ciclo curto; não é outro caminho de entrega. **Expo Go**, o app
+genérico da loja, é outra coisa — e este projeto não o usa.
+
+**3. O EAS — nuvem que compila e envia.** Descrito abaixo. É serviço, e a
+dependência dura só o tempo de compilar: se a Expo sumisse, o app instalado
+seguiria funcionando e a compilação voltaria para o Xcode.
+
+**A consequência prática** é a linha que separa um conserto de meia hora de
+um de meio minuto:
+
+| Onde está o defeito | Como se corrige |
+|---|---|
+| Servidor (`schema.sql`, RPC, RLS) | roda no Supabase e vale na hora, em todos os aparelhos |
+| Binário (telas, sincronização, domínio) | exige build novo, e só chega em quem atualizar |
+
+Foi por isso que a correção do convite valeu no mesmo dia, e o participante
+chamado "Você" continuou aparecendo no aparelho de quem ainda não havia
+atualizado: aquilo estava no binário dela, e nada feito no servidor alcança.
+
 ### Expo / EAS — projeto `@fernando.toschi/rachapila`
 
 Compila iOS e Android na nuvem e envia para as lojas. Dispensa ter Xcode e

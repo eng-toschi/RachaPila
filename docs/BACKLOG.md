@@ -85,6 +85,38 @@ disponibilidade é pela região da conta Apple — e o convidado chileno não
 conseguiria instalar para entrar na viagem. Restringir quebraria o convite
 entre países, que é justamente o que o app faz.
 
+### Campo de texto cortado no `Field`
+
+Aberto em 29/09/2026, ainda vivo no b53. O placeholder é desenhado abaixo do
+cursor e some cortado pela borda da caixa. Visível em "Adicionar alguém pelo
+nome" (`trip/[id]/participants.tsx`) e, em alguns builds, no nome da viagem
+(`trip/new.tsx`).
+
+Não impede usar o app: dá para digitar e adicionar gente normalmente. Impede
+usar a tela numa captura de loja.
+
+**Três hipóteses testadas e descartadas** — quem pegar isto não precisa
+repetir:
+
+1. *`flex: 1` no `TextInput` atrapalhando a centralização do pai.* Errado, e
+   ao contrário: tirar o `flex` faz o campo colapsar e o texto desenhar
+   inteiramente fora da caixa. Foi regressão introduzida no b52 e desfeita no
+   b53. O `flex` precisa ficar.
+2. *Tamanho de texto do sistema aumentado nos Ajustes.* O aparelho estava no
+   padrão. O `PixelRatio.getFontScale()` ficou no código porque protege de um
+   caso real, mas não é a causa — no padrão o fator é 1.
+3. *Caixa sem folga vertical.* O piso subiu de 44 para 52 no b53 e o corte
+   continuou igual.
+
+**O que se sabe de concreto:** o texto aparece cerca de 26pt abaixo do cursor,
+e o cursor está onde deveria. Ou seja, cursor e texto discordam de posição
+dentro do mesmo campo — não é a caixa que está pequena, é o texto que desce.
+
+**Como atacar:** as três tentativas foram feitas por leitura de código, sem
+rodar o app, e todas falharam. A próxima precisa ser com `npx expo start` e o
+inspetor de layout aberto sobre o campo, para ver a caixa real do `TextInput`
+e onde o texto está sendo desenhado. Sem isso é chute.
+
 ### Notificações push
 Avisar o grupo a cada despesa lançada. Exige build próprio (já temos),
 certificado de push e uma função no servidor. Não é exigência de loja

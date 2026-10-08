@@ -447,11 +447,15 @@ existir conta no Google, que só é exigida na hora de enviar.
       e-mail só em português com o código no meio é pedir para ele não
       encontrar — que foi o que reprovou a 1.0.
 
-      O código vai dentro de um `<a href="#">` sem decoração: o Mail do iOS
-      lê uma sequência longa de dígitos como telefone e a transforma em link
-      azul sublinhado, que ao ser tocado oferece ligar. Envolver em um link
-      inerte impede a detecção automática, e o código continua selecionável
-      para copiar.
+      O código vai dentro de um `<a href="#">` sem decoração, numa tentativa
+      de impedir que o Mail do iOS leia a sequência longa de dígitos como
+      telefone. **Não funciona**: testado em 08/10/2026, o detector do Mail
+      pinta o código de azul sublinhado do mesmo jeito. É comportamento do
+      cliente de e-mail e não há como desligá-lo pelo corpo da mensagem.
+
+      Fica como está porque o efeito é cosmético — o código continua grande,
+      legível e selecionável — e porque o envoltório pode ajudar em outros
+      clientes. Não gaste um ciclo de build tentando resolver isto.
 
       ```html
       <div style="font-family:-apple-system,'Segoe UI',Roboto,sans-serif;color:#1F1B16;max-width:480px">

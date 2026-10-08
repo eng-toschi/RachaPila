@@ -438,32 +438,51 @@ existir conta no Google, que só é exigida na hora de enviar.
       Seu link de entrada no RachaPila
       ```
 
-      Corpo (HTML com estilo embutido: cliente de e-mail descarta `<style>`,
-      então cada regra vai no próprio elemento):
+      Corpo — **cole só o HTML**, de `<div` a `</div>`. O campo é o corpo do
+      e-mail: qualquer linha de explicação colada junto é enviada ao usuário
+      como texto. Estilo vai embutido em cada elemento, porque cliente de
+      e-mail descarta `<style>`.
+
+      Bilíngue de propósito: quem revisa o app na Apple lê inglês, e um
+      e-mail só em português com o código no meio é pedir para ele não
+      encontrar — que foi o que reprovou a 1.0.
+
       ```html
       <div style="font-family:-apple-system,'Segoe UI',Roboto,sans-serif;color:#1F1B16;max-width:480px">
-        <h2 style="font-size:22px;margin:0 0 12px">Entrar no RachaPila</h2>
-        <p style="font-size:16px;line-height:1.6;margin:0 0 24px">
-          Use o código abaixo no app, ou toque no botão. Qualquer um dos dois
-          entra.
+        <h2 style="font-size:22px;margin:0 0 4px">Entrar no RachaPila</h2>
+        <p style="font-size:15px;color:#7A7168;margin:0 0 20px">Sign in to RachaPila</p>
+
+        <p style="font-size:16px;line-height:1.6;margin:0 0 8px">
+          Use o código abaixo no app, ou toque no botão.
         </p>
-        <p style="font-size:34px;letter-spacing:8px;font-weight:700;
-                  margin:0 0 8px">{{ .Token }}</p>
+        <p style="font-size:15px;line-height:1.6;color:#7A7168;margin:0 0 16px">
+          Enter the code below in the app, or tap the button.
+        </p>
+
+        <p style="font-size:34px;letter-spacing:8px;font-weight:700;margin:0 0 8px">{{ .Token }}</p>
         <p style="font-size:14px;line-height:1.6;color:#7A7168;margin:0 0 24px">
-          O código vale por uma hora e funciona em qualquer aparelho.
+          Vale por uma hora, em qualquer aparelho &middot; Valid for one hour, on any device
         </p>
+
         <p style="margin:0 0 24px">
           <a href="{{ .ConfirmationURL }}"
              style="display:inline-block;background:#0E9E94;color:#ffffff;
                     text-decoration:none;font-weight:600;font-size:16px;
-                    border-radius:999px;padding:14px 26px">Entrar no RachaPila</a>
+                    border-radius:999px;padding:14px 26px">Entrar &middot; Sign in</a>
         </p>
+
         <p style="font-size:14px;line-height:1.6;color:#7A7168;margin:0 0 8px">
-          O link vale uma vez só e precisa ser aberto no mesmo celular onde o
-          app está instalado. Se isso não funcionar, use o código.
+          O link vale uma vez só e precisa ser aberto no mesmo aparelho onde o
+          app está instalado. Se não funcionar, use o código.
         </p>
+        <p style="font-size:14px;line-height:1.6;color:#7A7168;margin:0 0 16px">
+          The link is single-use and must be opened on the device where the app
+          is installed. If it does not work, use the code above.
+        </p>
+
         <p style="font-size:14px;line-height:1.6;color:#7A7168;margin:0">
-          Se não foi você que pediu, pode ignorar esta mensagem. Nada acontece.
+          Se não foi você que pediu, ignore esta mensagem &middot; If you did not
+          request this, you can ignore this email.
         </p>
       </div>
       ```

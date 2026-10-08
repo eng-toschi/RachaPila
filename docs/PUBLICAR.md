@@ -447,15 +447,20 @@ existir conta no Google, que só é exigida na hora de enviar.
       e-mail só em português com o código no meio é pedir para ele não
       encontrar — que foi o que reprovou a 1.0.
 
-      O código vai dentro de um `<a href="#">` sem decoração, numa tentativa
-      de impedir que o Mail do iOS leia a sequência longa de dígitos como
-      telefone. **Não funciona**: testado em 08/10/2026, o detector do Mail
-      pinta o código de azul sublinhado do mesmo jeito. É comportamento do
-      cliente de e-mail e não há como desligá-lo pelo corpo da mensagem.
+      **Mantenha o código em seis dígitos** (Authentication → Sign In /
+      Providers → Email; o Supabase aceita de 6 a 10, e o padrão é 6).
 
-      Fica como está porque o efeito é cosmético — o código continua grande,
-      legível e selecionável — e porque o envoltório pode ajudar em outros
-      clientes. Não gaste um ciclo de build tentando resolver isto.
+      Não é só ergonomia. Com oito dígitos o projeto emitia algo como
+      `10356253`, que tem a cara de um telefone fixo brasileiro — e o Mail do
+      iOS linkava o código em azul, oferecendo **ligar** quando tocado.
+      Envolver em `<a href="#">` não impede: o detector é do cliente de
+      e-mail e não se desliga pelo corpo da mensagem. Seis dígitos não casam
+      com formato de telefone nenhum, e o problema some na origem.
+
+      O envoltório fica porque pode ajudar noutros clientes e não custa nada.
+
+      O app aceita de 6 a 8 de propósito, então mudar este ajuste não exige
+      build novo.
 
       ```html
       <div style="font-family:-apple-system,'Segoe UI',Roboto,sans-serif;color:#1F1B16;max-width:480px">

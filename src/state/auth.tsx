@@ -31,7 +31,7 @@ interface AuthStore {
   readonly loading: boolean;
   readonly signInWithEmail: (email: string) => Promise<SignInResult>;
   /**
-   * Entrada pelo código de seis dígitos que vem no mesmo e-mail do link.
+   * Entrada pelo código numérico que vem no mesmo e-mail do link.
    *
    * Existe porque o link sozinho não basta, e a reprovação 2.1(a) da Apple em
    * 06/10/2026 mostrou isso: "não conseguimos acessar o app porque o link de
@@ -132,7 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.warn('[auth] falha ao trocar código do link mágico por sessão:', error.message);
           setLinkError(
             'O link não funcionou — ele vale uma vez só, e expira em uma hora. ' +
-              'Use o código de seis dígitos do mesmo e-mail, ou peça um link novo.',
+              'Use o código do mesmo e-mail, ou peça um link novo.',
           );
         }
       });

@@ -76,6 +76,15 @@ export default function LoginScreen() {
 
   const validEmail = EMAIL_RE.test(email.trim());
 
+  /**
+   * Seis OU oito dígitos.
+   *
+   * O Supabase emite o código no comprimento configurado no projeto — aqui
+   * saiu com oito. A primeira versão disto cortava em seis, então o código
+   * real nunca passava: o app mandava `923196` de `92319626` e recebia
+   * "inválido" para sempre. Aceitar a faixa evita depender de um ajuste de
+   * painel que ninguém lembra de conferir.
+   */
   const enterWithCode = (): void => {
     const digits = code.replace(/\D/gu, '');
     if (digits.length < 6) return;
@@ -312,8 +321,8 @@ export default function LoginScreen() {
                     Verifique seu e-mail
                   </Text>
                   <Text variant="caption" tone="muted" style={{ textAlign: 'center' }}>
-                    Mandamos para {email.trim()} um link e um código de seis dígitos.
-                    Toque no link neste mesmo aparelho, ou digite o código abaixo.
+                    Mandamos para {email.trim()} um link e um código. Toque no link
+                    neste mesmo aparelho, ou digite o código abaixo.
                   </Text>
 
                   {/*
@@ -328,18 +337,18 @@ export default function LoginScreen() {
                     containerStyle={{ alignSelf: 'stretch' }}
                     value={code}
                     onChangeText={(text) => {
-                      setCode(text.replace(/\D/gu, '').slice(0, 6));
+                      setCode(text.replace(/\D/gu, '').slice(0, 8));
                       setCodeError(undefined);
                     }}
                     onSubmitEditing={enterWithCode}
-                    placeholder="Código de seis dígitos"
+                    placeholder="Código do e-mail"
                     placeholderTextColor={t.textFaint}
                     keyboardType="number-pad"
                     textContentType="oneTimeCode"
                     autoComplete="one-time-code"
                     returnKeyType="done"
                     accessibilityLabel="Código recebido por e-mail"
-                    style={{ fontSize: 22, fontFamily: FONT.semi, color: t.text, textAlign: 'center', letterSpacing: 6 }}
+                    style={{ fontSize: 22, fontFamily: FONT.semi, color: t.text, textAlign: 'center', letterSpacing: 4 }}
                   />
 
                   {codeError === undefined ? null : (

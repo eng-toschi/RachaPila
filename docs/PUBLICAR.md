@@ -447,6 +447,12 @@ existir conta no Google, que só é exigida na hora de enviar.
       e-mail só em português com o código no meio é pedir para ele não
       encontrar — que foi o que reprovou a 1.0.
 
+      O código vai dentro de um `<a href="#">` sem decoração: o Mail do iOS
+      lê uma sequência longa de dígitos como telefone e a transforma em link
+      azul sublinhado, que ao ser tocado oferece ligar. Envolver em um link
+      inerte impede a detecção automática, e o código continua selecionável
+      para copiar.
+
       ```html
       <div style="font-family:-apple-system,'Segoe UI',Roboto,sans-serif;color:#1F1B16;max-width:480px">
         <h2 style="font-size:22px;margin:0 0 4px">Entrar no RachaPila</h2>
@@ -459,7 +465,9 @@ existir conta no Google, que só é exigida na hora de enviar.
           Enter the code below in the app, or tap the button.
         </p>
 
-        <p style="font-size:34px;letter-spacing:8px;font-weight:700;margin:0 0 8px">{{ .Token }}</p>
+        <p style="font-size:34px;letter-spacing:8px;font-weight:700;margin:0 0 8px">
+          <a href="#" style="color:#1F1B16;text-decoration:none;pointer-events:none">{{ .Token }}</a>
+        </p>
         <p style="font-size:14px;line-height:1.6;color:#7A7168;margin:0 0 24px">
           Vale por uma hora, em qualquer aparelho &middot; Valid for one hour, on any device
         </p>

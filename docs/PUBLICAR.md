@@ -444,18 +444,23 @@ existir conta no Google, que só é exigida na hora de enviar.
       <div style="font-family:-apple-system,'Segoe UI',Roboto,sans-serif;color:#1F1B16;max-width:480px">
         <h2 style="font-size:22px;margin:0 0 12px">Entrar no RachaPila</h2>
         <p style="font-size:16px;line-height:1.6;margin:0 0 24px">
-          Toque no botão abaixo para entrar. O link vale por pouco tempo e só
-          funciona uma vez.
+          Use o código abaixo no app, ou toque no botão. Qualquer um dos dois
+          entra.
+        </p>
+        <p style="font-size:34px;letter-spacing:8px;font-weight:700;
+                  margin:0 0 8px">{{ .Token }}</p>
+        <p style="font-size:14px;line-height:1.6;color:#7A7168;margin:0 0 24px">
+          O código vale por uma hora e funciona em qualquer aparelho.
         </p>
         <p style="margin:0 0 24px">
           <a href="{{ .ConfirmationURL }}"
-             style="display:inline-block;background:#6D4AFF;color:#ffffff;
+             style="display:inline-block;background:#0E9E94;color:#ffffff;
                     text-decoration:none;font-weight:600;font-size:16px;
                     border-radius:999px;padding:14px 26px">Entrar no RachaPila</a>
         </p>
         <p style="font-size:14px;line-height:1.6;color:#7A7168;margin:0 0 8px">
-          Abra o link no mesmo celular onde o app está instalado — é isso que
-          devolve a sessão para o app certo.
+          O link vale uma vez só e precisa ser aberto no mesmo celular onde o
+          app está instalado. Se isso não funcionar, use o código.
         </p>
         <p style="font-size:14px;line-height:1.6;color:#7A7168;margin:0">
           Se não foi você que pediu, pode ignorar esta mensagem. Nada acontece.
@@ -463,8 +468,20 @@ existir conta no Google, que só é exigida na hora de enviar.
       </div>
       ```
 
-      `{{ .ConfirmationURL }}` é a variável do Supabase e precisa ficar
-      exatamente assim, com os espaços dentro das chaves.
+      **`{{ .Token }}` não é opcional.** Sem ele o Supabase não põe o código de
+      seis dígitos no e-mail, e o campo de código no app fica sem nada para
+      receber. Foi essa a correção da reprovação 2.1(a) de 06/10/2026: o
+      revisor não conseguiu entrar porque o link não funcionou, e não havia
+      outro caminho — nem aviso de que algo falhara.
+
+      Por que o link falha sem ninguém ter errado nada: ele vale uma vez só.
+      Filtro de segurança de e-mail que abre os links para checar consome o
+      código antes da pessoa, e e-mail lido num aparelho diferente do que
+      pediu quebra por desenho (o PKCE guarda o verificador em quem pediu). O
+      código de seis dígitos não tem nenhum dos dois problemas.
+
+      `{{ .ConfirmationURL }}` e `{{ .Token }}` são variáveis do Supabase e
+      precisam ficar exatamente assim, com os espaços dentro das chaves.
 
 - [ ] Capturas de tela **1284×2778** (o campo da ficha pede 6,5 pol.). São
       só tamanhos de Max/Plus: um **iPhone Pro** dá 1179×2556 ou 1206×2622 e

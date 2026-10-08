@@ -35,12 +35,15 @@ const EMAIL_RE = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/u;
 export default function LoginScreen() {
   const t = useTheme();
   const insets = useSafeAreaInsets();
-  const { session, loading, signInWithEmail, signOut } = useAuth();
+  const { session, loading, signInWithEmail, signInWithCode, signOut, linkError, clearLinkError } = useAuth();
   const { db, mutate } = useDatabase();
 
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [code, setCode] = useState('');
+  const [checkingCode, setCheckingCode] = useState(false);
+  const [codeError, setCodeError] = useState<string | undefined>(undefined);
   const [showInvite, setShowInvite] = useState(false);
   const [inviteInput, setInviteInput] = useState('');
   const [deleting, setDeleting] = useState(false);
@@ -72,6 +75,25 @@ export default function LoginScreen() {
   };
 
   const validEmail = EMAIL_RE.test(email.trim());
+
+  const enterWithCode = (): void => {
+    const digits = code.replace(/\D/gu, '');
+    if (digits.length < 6) return;
+    setCheckingCode(true);
+    setCodeError(undefined);
+    void signInWithCode(email.trim(), digits).then((result) => {
+      setCheckingCode(false);
+      if (result.ok) {
+        clearLinkError();
+        return;
+      }
+      setCodeError(
+        /expired|invalid/iu.test(result.message)
+          ? 'Código inválido ou vencido. Peça um e-mail novo.'
+          : result.message,
+      );
+    });
+  };
 
   const send = (): void => {
     if (!validEmail) return;
@@ -261,6 +283,27 @@ export default function LoginScreen() {
               </View>
             </View>
 
+            {/*
+              O aviso do link que falhou aparece nos dois estados da tela: quem
+              volta do e-mail com o app reaberto cai no estado inicial, e era
+              justamente aí que antes não havia pista nenhuma do que deu errado.
+            */}
+            {linkError === undefined ? null : (
+              <Card style={{ gap: SPACING.sm }}>
+                <Text variant="body" strong>
+                  Não consegui entrar com esse link
+                </Text>
+                <Text variant="caption" tone="muted">
+                  {linkError}
+                </Text>
+                <Pressable accessibilityRole="button" onPress={clearLinkError} hitSlop={8}>
+                  <Text variant="caption" tone="accent">
+                    Entendi
+                  </Text>
+                </Pressable>
+              </Card>
+            )}
+
             {status === 'sent' ? (
               <Card>
                 <View style={{ alignItems: 'center', gap: SPACING.sm }}>
@@ -269,10 +312,49 @@ export default function LoginScreen() {
                     Verifique seu e-mail
                   </Text>
                   <Text variant="caption" tone="muted" style={{ textAlign: 'center' }}>
-                    Mandamos um link para {email.trim()}. Toque nele neste mesmo aparelho
-                    para voltar já conectado.
+                    Mandamos para {email.trim()} um link e um código de seis dígitos.
+                    Toque no link neste mesmo aparelho, ou digite o código abaixo.
                   </Text>
-                  <Pressable accessibilityRole="button" onPress={() => { setStatus('idle'); }} hitSlop={8}>
+
+                  {/*
+                    O código existe porque o link sozinho não basta: ele vale uma
+                    vez só, e morre antes da pessoa se um filtro de segurança de
+                    e-mail o abrir para checar, ou se o e-mail for lido num
+                    aparelho diferente do que pediu. Foi o que reprovou a versão
+                    1.0 na Apple em 06/10/2026. O código não tem nenhum desses
+                    problemas.
+                  */}
+                  <Field
+                    containerStyle={{ alignSelf: 'stretch' }}
+                    value={code}
+                    onChangeText={(text) => {
+                      setCode(text.replace(/\D/gu, '').slice(0, 6));
+                      setCodeError(undefined);
+                    }}
+                    onSubmitEditing={enterWithCode}
+                    placeholder="Código de seis dígitos"
+                    placeholderTextColor={t.textFaint}
+                    keyboardType="number-pad"
+                    textContentType="oneTimeCode"
+                    autoComplete="one-time-code"
+                    returnKeyType="done"
+                    accessibilityLabel="Código recebido por e-mail"
+                    style={{ fontSize: 22, fontFamily: FONT.semi, color: t.text, textAlign: 'center', letterSpacing: 6 }}
+                  />
+
+                  {codeError === undefined ? null : (
+                    <Text variant="caption" tone="negative" style={{ textAlign: 'center' }}>
+                      {codeError}
+                    </Text>
+                  )}
+
+                  <Button
+                    label={checkingCode ? 'Conferindo…' : 'Entrar com o código'}
+                    onPress={enterWithCode}
+                    disabled={code.length < 6 || checkingCode}
+                  />
+
+                  <Pressable accessibilityRole="button" onPress={() => { setStatus('idle'); setCode(''); }} hitSlop={8}>
                     <Text variant="caption" tone="accent">
                       Usar outro e-mail
                     </Text>

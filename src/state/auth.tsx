@@ -30,7 +30,24 @@ interface AuthStore {
   /** Só é `true` durante a leitura inicial do SecureStore, uma vez por abertura do app. */
   readonly loading: boolean;
   readonly signInWithEmail: (email: string) => Promise<SignInResult>;
+  /**
+   * Entrada pelo código de seis dígitos que vem no mesmo e-mail do link.
+   *
+   * Existe porque o link sozinho não basta, e a reprovação 2.1(a) da Apple em
+   * 06/10/2026 mostrou isso: "não conseguimos acessar o app porque o link de
+   * confirmação não funcionava". Link mágico é de uso único, e há dois jeitos
+   * comuns de ele morrer antes de a pessoa tocar nele — filtro de segurança
+   * de e-mail que abre os links para checar, e e-mail lido num aparelho
+   * diferente do que pediu (o PKCE guarda o verificador em quem pediu).
+   *
+   * O código não depende de deep link, não é de uso único por pré-abertura e
+   * funciona mesmo que o e-mail seja lido noutro lugar.
+   */
+  readonly signInWithCode: (email: string, code: string) => Promise<SignInResult>;
   readonly signOut: () => Promise<void>;
+  /** Último erro do link mágico, para a tela poder explicar em vez de ficar muda. */
+  readonly linkError: string | undefined;
+  readonly clearLinkError: () => void;
 }
 
 const AuthContext = createContext<AuthStore | undefined>(undefined);
@@ -38,6 +55,7 @@ const AuthContext = createContext<AuthStore | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [linkError, setLinkError] = useState<string | undefined>(undefined);
 
   /**
    * Religa a renovação do token a cada volta para o primeiro plano.
@@ -103,7 +121,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setTimeout(() => { completeSignIn(url, retriesLeft - 1); }, 1500);
           return;
         }
-        if (error !== null) console.warn('[auth] falha ao trocar código do link mágico por sessão:', error.message);
+        if (error !== null) {
+          /**
+           * Antes isto era só um `console.warn`, e a pessoa voltava do e-mail
+           * para uma tela idêntica à que tinha deixado — sem erro, sem aviso,
+           * sem saída. Foi assim que o revisor da Apple concluiu que não dava
+           * para acessar o app. Falha silenciosa em caminho de login é falha
+           * dupla: a de entrar, e a de não contar por quê.
+           */
+          console.warn('[auth] falha ao trocar código do link mágico por sessão:', error.message);
+          setLinkError(
+            'O link não funcionou — ele vale uma vez só, e expira em uma hora. ' +
+              'Use o código de seis dígitos do mesmo e-mail, ou peça um link novo.',
+          );
+        }
       });
     };
 
@@ -130,11 +161,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
         return error === null ? { ok: true } : { ok: false, message: error.message };
       },
+      signInWithCode: async (email, code) => {
+        const { error } = await supabase.auth.verifyOtp({
+          email,
+          token: code.replace(/\D/gu, ''),
+          type: 'email',
+        });
+        return error === null ? { ok: true } : { ok: false, message: error.message };
+      },
       signOut: async () => {
         await supabase.auth.signOut();
       },
+      linkError,
+      clearLinkError: () => { setLinkError(undefined); },
     }),
-    [session, loading],
+    [session, loading, linkError],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

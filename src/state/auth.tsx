@@ -44,6 +44,20 @@ interface AuthStore {
    * funciona mesmo que o e-mail seja lido noutro lugar.
    */
   readonly signInWithCode: (email: string, code: string) => Promise<SignInResult>;
+  /**
+   * Entrada por senha, para quem tiver uma.
+   *
+   * Nasceu da segunda reprovação da Apple, em 09/10/2026: "não conseguimos
+   * acessar o app porque o e-mail de confirmação não foi enviado". Enquanto a
+   * única porta depender de uma mensagem chegar, a revisão depende de algo
+   * fora do nosso alcance — e eles pedem, por diretriz, credenciais que
+   * funcionem sempre.
+   *
+   * Não é a porta principal e não há cadastro de senha no app: quem entra por
+   * e-mail nunca precisa saber que isto existe. Serve a quem recebeu uma senha
+   * definida no painel, e a quem simplesmente não consegue receber e-mail.
+   */
+  readonly signInWithPassword: (email: string, password: string) => Promise<SignInResult>;
   readonly signOut: () => Promise<void>;
   /** Último erro do link mágico, para a tela poder explicar em vez de ficar muda. */
   readonly linkError: string | undefined;
@@ -168,6 +182,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           type: 'email',
         });
         return error === null ? { ok: true } : { ok: false, message: error.message };
+      },
+      signInWithPassword: async (email, password) => {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error === null) return { ok: true };
+        /**
+         * A maioria das contas aqui nunca teve senha — elas nascem do link
+         * mágico. O Supabase responde a isso com "invalid login credentials",
+         * que faria a pessoa procurar erro de digitação numa senha que ela
+         * nunca criou. Melhor dizer o que de fato acontece.
+         */
+        const semSenha = /invalid login credentials/iu.test(error.message);
+        return {
+          ok: false,
+          message: semSenha
+            ? 'E-mail ou senha não conferem. Se você nunca criou uma senha, entre pelo código enviado por e-mail.'
+            : error.message,
+        };
       },
       signOut: async () => {
         await supabase.auth.signOut();

@@ -35,7 +35,9 @@ const EMAIL_RE = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/u;
 export default function LoginScreen() {
   const t = useTheme();
   const insets = useSafeAreaInsets();
-  const { session, loading, signInWithEmail, signInWithCode, signOut, linkError, clearLinkError } = useAuth();
+  const {
+    session, loading, signInWithEmail, signInWithCode, signInWithPassword, signOut, linkError, clearLinkError,
+  } = useAuth();
   const { db, mutate } = useDatabase();
 
   const [email, setEmail] = useState('');
@@ -44,6 +46,10 @@ export default function LoginScreen() {
   const [code, setCode] = useState('');
   const [checkingCode, setCheckingCode] = useState(false);
   const [codeError, setCodeError] = useState<string | undefined>(undefined);
+  const [usingPassword, setUsingPassword] = useState(false);
+  const [password, setPassword] = useState('');
+  const [checkingPassword, setCheckingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | undefined>(undefined);
   const [showInvite, setShowInvite] = useState(false);
   const [inviteInput, setInviteInput] = useState('');
   const [deleting, setDeleting] = useState(false);
@@ -85,6 +91,16 @@ export default function LoginScreen() {
    * "inválido" para sempre. Aceitar a faixa evita depender de um ajuste de
    * painel que ninguém lembra de conferir.
    */
+  const enterWithPassword = (): void => {
+    if (!validEmail || password === '') return;
+    setCheckingPassword(true);
+    setPasswordError(undefined);
+    void signInWithPassword(email.trim(), password).then((result) => {
+      setCheckingPassword(false);
+      if (!result.ok) setPasswordError(result.message);
+    });
+  };
+
   const enterWithCode = (): void => {
     const digits = code.replace(/\D/gu, '');
     if (digits.length < 6) return;
@@ -396,11 +412,71 @@ export default function LoginScreen() {
                   </Text>
                 ) : null}
 
-                <Button
-                  label={status === 'sending' ? 'Enviando…' : 'Receber link por e-mail'}
-                  onPress={send}
-                  disabled={!validEmail || status === 'sending'}
-                />
+                {usingPassword ? (
+                  <>
+                    <Card style={{ paddingVertical: SPACING.md }}>
+                      <TextInput
+                        value={password}
+                        onChangeText={(text) => {
+                          setPassword(text);
+                          setPasswordError(undefined);
+                        }}
+                        onSubmitEditing={enterWithPassword}
+                        placeholder="Senha"
+                        placeholderTextColor={t.textFaint}
+                        secureTextEntry
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                        autoComplete="current-password"
+                        textContentType="password"
+                        returnKeyType="done"
+                        accessibilityLabel="Senha"
+                        style={{ fontSize: 16, fontFamily: FONT.semi, color: t.text, minHeight: MIN_TOUCH - 12 }}
+                      />
+                    </Card>
+
+                    {passwordError === undefined ? null : (
+                      <Text variant="caption" tone="negative">
+                        {passwordError}
+                      </Text>
+                    )}
+
+                    <Button
+                      label={checkingPassword ? 'Entrando…' : 'Entrar'}
+                      onPress={enterWithPassword}
+                      disabled={!validEmail || password === '' || checkingPassword}
+                    />
+                  </>
+                ) : (
+                  <Button
+                    label={status === 'sending' ? 'Enviando…' : 'Receber link por e-mail'}
+                    onPress={send}
+                    disabled={!validEmail || status === 'sending'}
+                  />
+                )}
+
+                {/*
+                  A senha é porta secundária e fica visível para todo mundo: a
+                  Apple proíbe comportamento diferente para quem revisa, então
+                  não existe atalho escondido aqui. Quem entra por e-mail nunca
+                  precisa abrir isto, e o app não cadastra senha em lugar
+                  nenhum — ela é definida no painel, para contas que precisem
+                  entrar sem depender de e-mail chegar.
+                */}
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => {
+                    setUsingPassword((v) => !v);
+                    setPassword('');
+                    setPasswordError(undefined);
+                  }}
+                  hitSlop={8}
+                  style={{ alignSelf: 'center', paddingVertical: SPACING.xs }}
+                >
+                  <Text variant="caption" tone="accent">
+                    {usingPassword ? 'Entrar por e-mail' : 'Entrar com senha'}
+                  </Text>
+                </Pressable>
               </View>
             )}
           </>

@@ -141,88 +141,76 @@ app, em Entrar → "Excluir minha conta").
 
 ## 2.8 Informações para revisão do app
 
-Campo em **Distribuição → versão 1.0 → Informações da revisão do app**. É o
-que evita a reprovação mais boba de app com login: o revisor abre, encontra
-uma tela de entrada, não consegue passar dela e devolve como "não foi
-possível avaliar".
+Campo em **Distribuição → versão 1.0 → Informações da revisão do app**.
 
-No nosso caso a resposta é boa — o app inteiro funciona sem conta — mas isso
-precisa estar escrito, porque o revisor não vai adivinhar.
+Reescrito em 13/10/2026, depois de duas reprovações seguidas na mesma coisa:
+o revisor não conseguiu entrar. O texto antigo dizia que não era preciso
+conta e parava aí — correto, mas insuficiente, porque a parte de compartilhar
+viagem precisa, e era essa que ele tentava.
 
-**Notas (colar no campo "Notas"):**
+Três decisões que o texto novo carrega:
 
-```
-Não é necessária conta para avaliar este app.
+**Em inglês, nomeando os rótulos em português.** O app é só em pt-BR e quem
+revisa lê inglês. Traduzir o app seria desproporcional; dizer "toque em
+`Entrar com senha` (Sign in with password)" resolve, e é o que revisor
+espera encontrar.
 
-Todas as funções principais — criar viagem, cadastrar participantes, lançar
-despesas em várias moedas, dividir, ver saldos e fechar as contas — funcionam
-sem login e sem internet. Basta abrir o app e criar uma viagem.
+**Com conta de demonstração e senha.** Enquanto a única porta dependia de
+e-mail chegar, a revisão dependia de algo fora do nosso alcance — e foi
+assim duas vezes. A conta `review@rachapila.com.br` entra sem e-mail nenhum.
 
-O login existe apenas para compartilhar uma viagem com outras pessoas. Ele usa
-link mágico enviado por e-mail: na tela "Entrar", digite qualquer endereço de
-e-mail ao qual você tenha acesso e o link chegará em segundos.
+**Sem marcar "Início de sessão obrigatório".** Marcar significa que o app
+exige login para funcionar, o que não é verdade aqui e contradiz o primeiro
+parágrafo das notas. As credenciais vão nos campos de usuário e senha, que
+existem independentemente dessa marcação.
 
-Exclusão de conta (diretriz 5.1.1(v)): em Entrar → "Excluir minha conta".
-Disponível dentro do app, sem precisar falar com o suporte.
-
-A permissão de localização é opcional e pedida apenas ao tocar em "Usar GPS"
-dentro do formulário de despesa. O app funciona normalmente se ela for negada.
-```
-
-Preencha também nome, sobrenome, e-mail e telefone de contato — é por onde a
-Apple liga se travar algo na revisão.
-
-## 2.9 Classificação etária
-
-Em **Informações do app → Classificação etária → Editar**. O app não tem
-violência, conteúdo sexual, jogo de azar, álcool nem terror: a resposta é
-"nenhum" ou a opção mais branda em todas as perguntas, e o resultado é **4+**.
-
-## 2.10 TestFlight — informações de teste
-
-Campos de **TestFlight → Informações de teste**, exigidos antes de mandar um
-build para teste externo.
-
-> **Desmarque "Início de sessão obrigatório".** O app funciona inteiro sem
-> conta, e não existe usuário e senha — o login é por link no e-mail. Deixar
-> marcado faz a Apple esperar credenciais que não existem, e o Beta App
-> Review volta por isso.
-
-**E-mail para comentários:** `contato@rachapila.com.br`
-
-**Descrição da versão beta do app:**
+**Notas (colar no campo "Notas", trocando `<SENHA>`):**
 
 ```
-O RachaPila divide as contas de uma viagem em grupo: cada um lança o que
-pagou, e no fim o app diz quem paga a quem.
+No account is required to evaluate this app. The interface is in Portuguese
+(Brazil); the step-by-step below gives the exact on-screen labels.
 
-O que experimentar:
+WHAT WORKS WITHOUT SIGNING IN (most of the app)
 
-1. Crie uma viagem e escolha a moeda do acerto. Se vocês forem gastar em
-outra moeda, acrescente-a também.
+Tap "+ Nova viagem" (New trip) on the home screen. You can create a trip, add
+people by name, enter expenses in several currencies, split them, see balances
+and settle up — all with no account and no internet connection. Sign-in is only
+needed to share a trip with another person.
 
-2. Adicione as pessoas pelo nome. Ninguém precisa ter o app para entrar na
-divisão das contas.
+HOW TO SIGN IN (demo account, no email needed)
 
-3. Lance algumas despesas variando quem pagou e entre quem dividiu — por
-cabeça, por valor exato, ou só entre algumas pessoas.
+1. On the home screen, tap the round person icon in the top-right corner.
+2. The sign-in screen opens, titled "Entrar" (Sign in).
+3. Type the email address below in the field showing "seu@email.com".
+4. Below the green button, tap the text link "Entrar com senha"
+   (Sign in with password).
+5. A second field appears, showing "Senha" (Password). Type the password below.
+6. Tap the green button "Entrar" (Sign in).
 
-4. Abra a aba de saldos e depois "Fechar a viagem": o app calcula o menor
-número de transferências para todo mundo zerar.
+   Email: review@rachapila.com.br
+   Password: <SENHA>
 
-5. Se alguém cadastrar uma chave Pix, o fechamento gera um código copia e
-cola com o valor já embutido.
+This password option is available to every user, not only to reviewers.
 
-Não é preciso criar conta para nada disso. A conta só serve para compartilhar
-a viagem com outras pessoas, e entrar é por um link enviado ao e-mail — não
-há senha.
+ALTERNATIVE: SIGN IN BY EMAIL CODE
 
-O app funciona sem internet: dá para lançar despesas offline, e tudo se
-ajusta entre os celulares do grupo quando a conexão voltar.
+Typing any email address and tapping the green button
+"Receber link por e-mail" (Receive link by email) sends a message containing a
+six-digit code. Enter it in the field shown and tap "Entrar com o código"
+(Sign in with the code). The email is written in both Portuguese and English.
 
-O que mais ajuda saber: se algum valor pareceu errado, se alguma tela
-confundiu, e se algo travou.
+OTHER NOTES
+
+Account deletion (guideline 5.1.1(v)): once signed in, the same screen shows
+"Excluir minha conta" (Delete my account). No support contact required.
+
+Location permission is optional and only requested when tapping "Usar GPS"
+inside the expense form. The app works normally if it is denied.
 ```
+
+Os rótulos acima foram conferidos em `app/login.tsx` no b57. Se algum texto
+da tela mudar, estas notas mudam junto — instrução que nomeia um botão
+inexistente é pior que instrução nenhuma.
 
 **Informações de contato:** nome, sobrenome, telefone e e-mail de verdade —
 é por onde a Apple liga se algo travar na revisão.

@@ -15,7 +15,7 @@ export const APP_NAME = 'RachaPila';
  *
  * Suba este número a cada correção enviada para teste.
  */
-export const APP_BUILD = 'b56';
+export const APP_BUILD = 'b57';
 
 /**
  * Onde a página pública do app está hospedada, sem barra no fim.

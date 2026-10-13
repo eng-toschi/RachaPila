@@ -176,12 +176,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return error === null ? { ok: true } : { ok: false, message: error.message };
       },
       signInWithCode: async (email, code) => {
-        const { error } = await supabase.auth.verifyOtp({
-          email,
-          token: code.replace(/\D/gu, ''),
-          type: 'email',
-        });
-        return error === null ? { ok: true } : { ok: false, message: error.message };
+        const token = code.replace(/\D/gu, '');
+
+        /**
+         * Tenta como entrada e, se não colar, como cadastro.
+         *
+         * O Supabase trata e-mail novo e e-mail conhecido como fluxos
+         * diferentes: quem já existe recebe o template "Magic link or OTP";
+         * quem chega pela primeira vez recebe o "Confirm signup", e a
+         * verificação correspondente é de tipo `signup`. Isso não aparece em
+         * teste feito com a própria conta, porque ela já existe — foi assim
+         * que escapou até a segunda reprovação da Apple, em 09/10/2026, cujo
+         * relato dizia exatamente "ao tentar criar uma conta nova".
+         *
+         * Tentar os dois tipos custa uma chamada a mais só quando a primeira
+         * falha, e livra o app de depender de qual caminho o servidor
+         * escolheu.
+         */
+        const primeira = await supabase.auth.verifyOtp({ email, token, type: 'email' });
+        if (primeira.error === null) return { ok: true };
+
+        const segunda = await supabase.auth.verifyOtp({ email, token, type: 'signup' });
+        if (segunda.error === null) return { ok: true };
+
+        return { ok: false, message: primeira.error.message };
       },
       signInWithPassword: async (email, password) => {
         const { error } = await supabase.auth.signInWithPassword({ email, password });

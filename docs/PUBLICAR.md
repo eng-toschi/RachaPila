@@ -431,7 +431,19 @@ existir conta no Google, que só é exigida na hora de enviar.
 - [x] **E-mail de entrada traduzido** (28/09/2026). O modelo padrão do Supabase chega em
       inglês — assunto *"Your sign-in link"* —, e é o **primeiro contato** de
       quem se cadastra num app inteiro em português. Em
-      **Authentication → Emails → Magic Link**:
+      **São DOIS templates, não um.** O Supabase escolhe conforme o e-mail:
+      quem já é usuário recebe **Magic Link or OTP**; quem chega pela primeira
+      vez recebe **Confirm signup**. Editar só o primeiro deixa todo usuário
+      novo sem código — e foi exatamente isso que reprovou a 1.0 na Apple em
+      09/10/2026, com o relato "ao tentar criar uma conta nova". O registro no
+      Resend mostrava o e-mail entregue, mas com o texto padrão do Confirm
+      signup, que não traz `{{ .Token }}`.
+
+      Não dá para perceber testando com a própria conta: ela já existe.
+      Para conferir, use um endereço que nunca entrou no app.
+
+      **Cole o mesmo corpo nos dois**, em **Authentication → Emails →
+      Magic Link** e em **Authentication → Emails → Confirm signup**:
 
       Assunto:
       ```

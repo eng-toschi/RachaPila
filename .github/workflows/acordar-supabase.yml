@@ -1,0 +1,59 @@
+# Mantém o projeto do Supabase acordado.
+#
+# O plano gratuito suspende projeto sem uso por alguns dias, e projeto
+# suspenso perde o endereço: o nome deixa de resolver. Foi o que reprovou a
+# versão 1.0 na Apple em 26/10/2026 — o revisor recebeu "A server with the
+# specified hostname could not be found", que é literalmente verdade.
+#
+# O risco é maior agora do que depois. O Supabase conta atividade por uso do
+# banco, e hoje o app não tem usuários além do autor. Com gente usando, ele
+# não pausa sozinho; a janela perigosa é a revisão e as primeiras semanas.
+#
+# A chamada vai ao endpoint de saúde da autenticação, que é público e não
+# precisa de segredo — a chave publicável já vai dentro do binário do app.
+name: Acordar o Supabase
+
+on:
+  schedule:
+    # 11:17 UTC, um horário sem nada redondo: a fila do GitHub atrasa tarefas
+    # marcadas na hora cheia, e atraso aqui é exatamente o que não se quer.
+    - cron: '17 11 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  acordar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # A URL sai do próprio código, e não de um valor repetido aqui: dois
+      # lugares com o mesmo endereço é um lugar a mais para discordarem.
+      - name: Chamar o servidor
+        run: |
+          set -uo pipefail
+          url=$(grep -oE "SUPABASE_URL *= *'[^']+'" src/config/supabase.ts | cut -d"'" -f2)
+          key=$(grep -oE "SUPABASE_PUBLISHABLE_KEY *= *'[^']+'" src/config/supabase.ts | cut -d"'" -f2)
+          if [ -z "$url" ] || [ -z "$key" ]; then
+            echo "::error::não achei a URL ou a chave em src/config/supabase.ts"
+            exit 1
+          fi
+          echo "servidor: ${url#https://}"
+
+          codigo=$(curl -s -o /tmp/resposta -w '%{http_code}' --max-time 30 \
+            -H "apikey: $key" "$url/auth/v1/health")
+          saiu=$?
+
+          if [ $saiu -ne 0 ]; then
+            echo "::error::não consegui falar com o servidor (curl saiu $saiu)."
+            echo "::error::Código 6 é nome que não resolve — provável projeto pausado."
+            exit 1
+          fi
+          if [ "$codigo" != "200" ]; then
+            echo "::error::o servidor respondeu HTTP $codigo"
+            cat /tmp/resposta
+            exit 1
+          fi
+          echo "✓ acordado (HTTP 200)"

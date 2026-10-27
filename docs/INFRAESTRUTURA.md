@@ -304,11 +304,35 @@ o desempate é determinístico e dá o mesmo resultado nos dois.
 | Apple Developer | US$ 99/ano |
 | GitHub, GitHub Pages | grátis (repositório público) |
 | Expo EAS | grátis (fila compartilhada) |
-| Supabase | grátis (projeto pequeno) |
+| Supabase | grátis (projeto pequeno) — **pausa sem uso**, ver abaixo |
 | Resend | grátis (até 100 e-mails/dia) |
 | ImprovMX | grátis |
 | Registro.br | ~R$ 40/ano |
 | open.er-api.com | grátis, sem chave |
+
+### O projeto pausa sozinho, e o endereço some junto
+
+Aprendido do jeito caro em 26/10/2026, na quarta reprovação da 1.0: o plano
+gratuito do Supabase suspende projeto sem uso por alguns dias, e **projeto
+suspenso para de resolver o nome**. O revisor da Apple recebeu "A server with
+the specified hostname could not be found" — literalmente verdade, e o mesmo
+erro aparecia de qualquer máquina, não só da rede dele.
+
+O sintoma engana porque o app parece quebrado em tudo que toca a rede: o
+link mágico, o código por e-mail e a entrada por senha falham juntos, já que
+batem no mesmo host. Foram duas rodadas investigando e-mail antes de alguém
+olhar se o servidor existia.
+
+O risco é maior enquanto o app não tem usuários — o Supabase conta atividade
+por uso do banco. O workflow `.github/workflows/acordar-supabase.yml` chama o
+endpoint de saúde uma vez por dia para segurar isso durante a revisão e as
+primeiras semanas. Se o uso real crescer, ele deixa de ser necessário; se o
+app ficar sério, o plano pago (US$ 25/mês) resolve na origem e ainda tira os
+limites de envio de e-mail.
+
+**Ao diagnosticar qualquer falha de rede neste app, confira primeiro se o
+projeto está no ar.** `npm run testa-senha <email> <senha>` responde isso na
+primeira linha.
 
 **Custo fixo: US$ 99 + o domínio.** Todo o resto está em plano gratuito, e
 nenhum deles é obrigatório para o app funcionar no aparelho de quem baixou.

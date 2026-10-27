@@ -11,6 +11,15 @@
 #
 # A chamada vai ao endpoint de saúde da autenticação, que é público e não
 # precisa de segredo — a chave publicável já vai dentro do binário do app.
+#
+# Ironia a não esquecer: o GitHub desativa workflow agendado em repositório
+# sem commits por 60 dias. A automação que impede o Supabase de pausar por
+# inatividade pode ela mesma ser desligada por inatividade — e aí o
+# encadeamento é mudo: ninguém commita, o agendamento morre, o projeto pausa,
+# o app quebra para quem abrir. Chega um e-mail antes, e um clique reativa.
+#
+# É ponte, não solução. Com uso real o app se mantém acordado sozinho; se o
+# projeto ficar sério, o plano pago resolve na origem.
 name: Acordar o Supabase
 
 on:

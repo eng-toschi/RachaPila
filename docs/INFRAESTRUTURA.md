@@ -330,6 +330,12 @@ primeiras semanas. Se o uso real crescer, ele deixa de ser necessário; se o
 app ficar sério, o plano pago (US$ 25/mês) resolve na origem e ainda tira os
 limites de envio de e-mail.
 
+Uma pista descartada, para não ser reaberta: o host não tem registro AAAA, e
+isso **não** é problema. A rede de revisão da Apple usa NAT64/DNS64, que
+sintetiza um endereço IPv6 para host só-IPv4 e traduz a conexão. A prova está
+no próprio episódio: em 09/10/2026 o pedido do revisor chegou ao servidor — o
+registro do Resend mostra o e-mail saindo às 05:49.
+
 **Ao diagnosticar qualquer falha de rede neste app, confira primeiro se o
 projeto está no ar.** `npm run testa-senha <email> <senha>` responde isso na
 primeira linha.

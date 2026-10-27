@@ -44,13 +44,22 @@ if [ -z "$ips" ]; then
 fi
 echo "resolve para: $(printf '%s' "$ips" | tr '\n' ' ')"
 
-# 2) Tem endereço IPv6? A Apple revisa em rede sem IPv4.
+# 2) IPv6, só como informação.
+#
+#    A versão anterior avisava que a falta de AAAA quebraria o app na rede da
+#    Apple. Era alarme falso, e alarme falso em ferramenta de diagnóstico é
+#    pior que silêncio: manda procurar no lugar errado. A rede de revisão usa
+#    NAT64/DNS64, que sintetiza um endereço IPv6 para host só-IPv4 e traduz a
+#    conexão — host sem AAAA é alcançável lá.
+#
+#    E há prova no próprio caso: em 09/10/2026 o pedido do revisor chegou ao
+#    servidor (o registro do Resend mostra o e-mail saindo). Se IPv6 fosse
+#    barreira, não teria chegado.
 v6=$(dig +short "$host" AAAA 2>/dev/null || true)
-if [ -z "$v6" ]; then
-  echo "⚠ sem registro IPv6 (AAAA) — numa rede só IPv6, como a da revisão"
-  echo "  da Apple, o app não alcança este servidor."
-else
+if [ -n "$v6" ]; then
   echo "IPv6: $(printf '%s' "$v6" | tr '\n' ' ')"
+else
+  echo "IPv6: sem AAAA (não é problema — a rede da Apple traduz por NAT64)"
 fi
 
 # 3) A conta entra?

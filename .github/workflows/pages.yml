@@ -32,7 +32,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       # `enablement` liga o Pages na primeira execução. Sem isto o workflow
       # falha com "Get Pages site failed" até alguém abrir as configurações
       # do repositório à mão — e a ordem natural das coisas é o push vir

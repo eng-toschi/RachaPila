@@ -37,7 +37,7 @@ jobs:
   acordar:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # A URL sai do próprio código, e não de um valor repetido aqui: dois
       # lugares com o mesmo endereço é um lugar a mais para discordarem.

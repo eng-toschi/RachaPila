@@ -31,6 +31,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   acordar:
@@ -66,3 +67,47 @@ jobs:
             exit 1
           fi
           echo "✓ acordado (HTTP 200)"
+
+      # Aviso com quinze dias de margem, porque o corte do GitHub é aos 60 e
+      # descobrir no dia é descobrir tarde.
+      #
+      # Abre issue em vez de falhar o job: falha confundiria "repositório
+      # parado" com "servidor fora do ar", que é o que o passo acima detecta.
+      # Sinais diferentes para problemas diferentes — e issue chega por e-mail
+      # igual, fica aberta até alguém resolver, e deixa de ser criada sozinha
+      # quando um commit novo reinicia a contagem.
+      - name: Avisar se o agendamento estiver perto de ser desligado
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -uo pipefail
+          dias=$(( ( $(date +%s) - $(git log -1 --format=%ct) ) / 86400 ))
+          echo "último commit há $dias dia(s)"
+          if [ "$dias" -lt 45 ]; then
+            echo "dentro do prazo — nada a avisar"
+            exit 0
+          fi
+          titulo="O agendamento do Supabase vai ser desligado por inatividade"
+          abertas=$(gh issue list --state open --search "$titulo in:title" --json number --jq 'length')
+          if [ "$abertas" != "0" ]; then
+            echo "já existe issue aberta sobre isto"
+            exit 0
+          fi
+          {
+            echo "O último commit neste repositório foi há **$dias dias**."
+            echo
+            echo "O GitHub desativa workflows agendados em repositório sem commits por"
+            echo "60 dias. Quando isso acontecer, \`acordar-supabase.yml\` para de rodar,"
+            echo "o projeto do Supabase pausa por inatividade, e o app quebra para quem"
+            echo "abrir — o endereço do servidor deixa de resolver. Nada disso avisa"
+            echo "dentro do app."
+            echo
+            echo "**Para resolver:** qualquer commit reinicia a contagem. Se o"
+            echo "agendamento já tiver sido desligado, reative na aba Actions."
+            echo
+            echo "Se o app já tiver uso real, isto deixou de ser necessário: o uso"
+            echo "mantém o projeto acordado sozinho. Vale então apagar o workflow em"
+            echo "vez de alimentá-lo."
+          } > /tmp/corpo.md
+          gh issue create --title "$titulo" --body-file /tmp/corpo.md
+          echo "issue aberta"

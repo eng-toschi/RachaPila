@@ -25,6 +25,30 @@ export const AUTH_REDIRECT_URL = Linking.createURL('/');
 
 export type SignInResult = { readonly ok: true } | { readonly ok: false; readonly message: string };
 
+/**
+ * Repete uma vez quando a falha é de rede, e não de credencial.
+ *
+ * O primeiro pedido de um app recém-aberto falha de vez em quando com
+ * "network connection was lost" — já documentado adiante, na troca do código
+ * do link mágico, onde isso foi visto ao vivo. As entradas por código e por
+ * senha nasceram sem essa proteção, e são justamente as que o revisor da
+ * Apple usa: ali um soluço não é um aborrecimento, é uma reprovação e mais
+ * duas semanas.
+ *
+ * Só repete erro de rede. Senha errada ou código vencido continuam
+ * respondendo na hora — insistir neles seria esconder a resposta certa.
+ */
+async function comUmaSegundaChance(
+  tentar: () => Promise<{ error: { message: string } | null }>,
+): Promise<{ error: { message: string } | null }> {
+  const primeira = await tentar();
+  if (primeira.error === null || !/network|connection/iu.test(primeira.error.message)) {
+    return primeira;
+  }
+  await new Promise((resolva) => setTimeout(resolva, 1200));
+  return tentar();
+}
+
 interface AuthStore {
   readonly session: Session | null;
   /** Só é `true` durante a leitura inicial do SecureStore, uma vez por abertura do app. */
@@ -193,16 +217,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
          * falha, e livra o app de depender de qual caminho o servidor
          * escolheu.
          */
-        const primeira = await supabase.auth.verifyOtp({ email, token, type: 'email' });
+        const primeira = await comUmaSegundaChance(() =>
+          supabase.auth.verifyOtp({ email, token, type: 'email' }),
+        );
         if (primeira.error === null) return { ok: true };
 
-        const segunda = await supabase.auth.verifyOtp({ email, token, type: 'signup' });
+        const segunda = await comUmaSegundaChance(() =>
+          supabase.auth.verifyOtp({ email, token, type: 'signup' }),
+        );
         if (segunda.error === null) return { ok: true };
 
         return { ok: false, message: primeira.error.message };
       },
       signInWithPassword: async (email, password) => {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await comUmaSegundaChance(() =>
+          supabase.auth.signInWithPassword({ email, password }),
+        );
         if (error === null) return { ok: true };
         /**
          * A maioria das contas aqui nunca teve senha — elas nascem do link
